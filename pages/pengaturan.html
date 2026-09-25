@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Pengaturan FinanceTrack — atur profil, preferensi tampilan, kategori, dan data lokalmu.">
+  <title>Pengaturan · FinanceTrack</title>
+
+  <link rel="icon" type="image/svg+xml" href="../assets/img/logo/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <img src="../assets/img/logo/logo.svg" alt="FinanceTrack" width="120" height="30">
+      <button type="button" class="sidebar__close" data-sidebar-close aria-label="Tutup menu">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <nav class="sidebar__nav" aria-label="Navigasi utama">
+      <p class="sidebar__label">Menu</p>
+      <ul>
+        <li><a class="nav-item" href="dashboard.html">
+          <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span> Dashboard
+        </a></li>
+        <li>
+          <button type="button" class="nav-item" data-submenu-trigger aria-expanded="false" aria-controls="submenu-transaksi" style="width:100%">
+            <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Transaksi
+            <span class="material-symbols-outlined icon-xs" aria-hidden="true" style="margin-left:auto">expand_more</span>
+          </button>
+          <ul class="nav-sublist" id="submenu-transaksi">
+            <li><a class="nav-subitem" href="transaksi.html">Semua Transaksi</a></li>
+            <li><a class="nav-subitem" href="form-transaksi.html">Tambah Transaksi</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-item" href="anggaran.html">
+          <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span> Anggaran
+        </a></li>
+        <li><a class="nav-item" href="laporan.html">
+          <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Laporan
+        </a></li>
+        <li><a class="nav-item is-active" href="pengaturan.html" aria-current="page">
+          <span class="material-symbols-outlined" aria-hidden="true">settings</span> Pengaturan
+        </a></li>
+      </ul>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <span class="sidebar__avatar" aria-hidden="true">FP</span>
+        <div>
+          <p class="sidebar__user-name">Fikri Juana</p>
+          <p class="sidebar__user-role">Mahasiswa</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" data-sidebar-close></div>
+
+  <div class="app">
+    <header class="app__header">
+      <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="app__header-title">
+        <span class="app__header-brand">FinanceTrack</span>
+        <span class="app__header-name">Pengaturan</span>
+      </div>
+    </header>
+
+    <main class="app__main">
+
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">tune</span>
+            Preferensi Aplikasi
+          </p>
+          <h1 class="page-title">Pengaturan</h1>
+          <p class="page-subtitle">Sesuaikan profil dan preferensi pencatatan agar lebih sesuai gayamu.</p>
+        </div>
+      </div>
+
+      <div class="grid grid--sidebar-right">
+
+        <div class="stack">
+
+          <!-- Profil -->
+          <section class="card card--pad" aria-labelledby="profil-heading">
+            <h2 class="section-title" id="profil-heading">Profil Pengguna</h2>
+            <p class="page-subtitle" style="margin-bottom:var(--space-lg)">
+              Data ini hanya tersimpan di perangkatmu pada Milestone 2.
+            </p>
+
+            <form class="stack" id="profileForm" novalidate>
+              <div class="row" style="gap:var(--space-md);align-items:center;margin-bottom:var(--space-sm)">
+                <span class="sidebar__avatar" style="width:56px;height:56px;font-size:var(--text-lg)" aria-hidden="true">FP</span>
+                <div>
+                  <button type="button" class="btn btn--secondary btn--sm" data-avatar>
+                    <span class="material-symbols-outlined icon-sm" aria-hidden="true">photo_camera</span>
+                    Ubah Foto
+                  </button>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:var(--space-xs) 0 0">
+                    Maksimal 1&nbsp;MB, format JPG atau PNG.
+                  </p>
+                </div>
+              </div>
+
+              <div class="grid grid--2">
+                <div class="field">
+                  <label class="field__label" for="set-name">Nama Lengkap</label>
+                  <input type="text" class="input" id="set-name" name="nama" value="Fikri Juana" autocomplete="name">
+                </div>
+                <div class="field">
+                  <label class="field__label" for="set-username">Nama Pengguna</label>
+                  <input type="text" class="input" id="set-username" name="username" value="fikrijuana" autocomplete="username">
+                </div>
+              </div>
+
+              <div class="grid grid--2">
+                <div class="field">
+                  <label class="field__label" for="set-email">Email</label>
+                  <input type="email" class="input" id="set-email" name="email" value="fikri.juana@kampus.ac.id" autocomplete="email">
+                </div>
+                <div class="field">
+                  <label class="field__label" for="set-role">Peran</label>
+                  <select class="select" id="set-role" name="peran">
+                    <option value="mahasiswa" selected>Mahasiswa</option>
+                    <option value="karyawan">Karyawan</option>
+                    <option value="freelancer">Freelancer</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row" style="gap:var(--space-sm);justify-content:flex-end">
+                <button type="button" class="btn btn--secondary" data-reset-profile>Reset</button>
+                <button type="submit" class="btn btn--primary">
+                  <span class="material-symbols-outlined icon-sm" aria-hidden="true">check</span>
+                  Simpan Perubahan
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Preferensi -->
+          <section class="card card--pad" aria-labelledby="preferensi-heading">
+            <h2 class="section-title" id="preferensi-heading">Preferensi Tampilan</h2>
+            <p class="page-subtitle" style="margin-bottom:var(--space-lg)">
+              Pengaturan tampilan &amp; format pencatatan.
+            </p>
+
+            <div class="stack">
+              <div class="row row--between row--wrap" style="gap:var(--space-md)">
+                <div>
+                  <p style="font-weight:600;margin:0">Format Tanggal</p>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Dipakai di seluruh daftar transaksi</p>
+                </div>
+                <label class="visually-hidden" for="set-date-format">Format tanggal</label>
+                <select class="select" id="set-date-format" style="width:auto;min-width:200px">
+                  <option value="id-long">24 Okt 2024</option>
+                  <option value="id-short">24/10/2024</option>
+                  <option value="iso">2024-10-24</option>
+                </select>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row row--between row--wrap" style="gap:var(--space-md)">
+                <div>
+                  <p style="font-weight:600;margin:0">Mata Uang</p>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:0">FinanceTrack memakai Rupiah lokal</p>
+                </div>
+                <span class="badge badge--income">IDR · Rp</span>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row row--between row--wrap" style="gap:var(--space-md)">
+                <div>
+                  <p style="font-weight:600;margin:0">Baris per Halaman</p>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Berlaku pada halaman Semua Transaksi</p>
+                </div>
+                <label class="visually-hidden" for="set-per-page">Baris per halaman</label>
+                <select class="select" id="set-per-page" style="width:auto">
+                  <option value="8">8 baris</option>
+                  <option value="12">12 baris</option>
+                  <option value="20">20 baris</option>
+                  <option value="50">50 baris</option>
+                </select>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row row--between row--wrap" style="gap:var(--space-md)">
+                <div>
+                  <p style="font-weight:600;margin:0">Tampilkan Catatan</p>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Tampilkan kolom catatan pada kartu transaksi</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" checked aria-label="Tampilkan catatan pada kartu transaksi">
+                  <span class="switch__track"></span>
+                </label>
+              </div>
+
+              <div class="divider"></div>
+
+              <div class="row row--between row--wrap" style="gap:var(--space-md)">
+                <div>
+                  <p style="font-weight:600;margin:0">Peringatan Anggaran 80%</p>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Ingatkan saat pemakaian mendekati batas</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" checked aria-label="Aktifkan peringatan anggaran 80 persen">
+                  <span class="switch__track"></span>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <!-- Kategori -->
+          <section class="card card--pad" aria-labelledby="kategori-set-heading">
+            <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
+              <div>
+                <h2 class="section-title" id="kategori-set-heading">Kategori Transaksi</h2>
+                <p class="page-subtitle">Kategori bawaan yang dipakai pada form &amp; filter.</p>
+              </div>
+              <span class="badge badge--muted" id="category-count"></span>
+            </div>
+            <div id="category-list"></div>
+          </section>
+
+          <!-- Data -->
+          <section class="card card--pad" aria-labelledby="data-heading">
+            <h2 class="section-title" id="data-heading">Kelola Data</h2>
+            <p class="page-subtitle" style="margin-bottom:var(--space-lg)">
+              Seluruh data FinanceTrack saat ini bersifat lokal (mock).
+            </p>
+
+            <div class="stack stack--sm">
+              <button type="button" class="btn btn--secondary btn--block" data-export>
+                <span class="material-symbols-outlined icon-sm" aria-hidden="true">download</span>
+                Ekspor Semua Transaksi (CSV)
+              </button>
+              <button type="button" class="btn btn--secondary btn--block" data-reset-demo>
+                <span class="material-symbols-outlined icon-sm" aria-hidden="true">restart_alt</span>
+                Kembalikan ke Data Demo
+              </button>
+            </div>
+
+            <div class="callout callout--warning" style="margin-top:var(--space-md)">
+              <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">info</span>
+              <div>
+                <p class="callout__title">Milestone 2</p>
+                <p class="callout__text">Penyimpanan permanen, sinkronisasi antar perangkat, dan budgeting kolaboratif akan hadir pada Milestone 3.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="stack">
+
+          <section class="card card--pad" aria-labelledby="metode-heading">
+            <h2 class="section-title" id="metode-heading">Metode Pembayaran</h2>
+            <p class="page-subtitle" style="margin-bottom:var(--space-md)">Dompet &amp; tunnel yang tersedia.</p>
+            <div class="row row--wrap" id="method-list" style="gap:var(--space-xs)"></div>
+          </section>
+
+          <section class="card card--pad" aria-labelledby="tentang-heading">
+            <h2 class="section-title" id="tentang-heading">Tentang Aplikasi</h2>
+            <div class="detail-list" style="margin-top:var(--space-sm)">
+              <div class="detail-list__row">
+                <span class="detail-list__key">Aplikasi</span>
+                <span class="detail-list__val">FinanceTrack</span>
+              </div>
+              <div class="detail-list__row">
+                <span class="detail-list__key">Versi</span>
+                <span class="detail-list__val">Milestone 2 — Frontend</span>
+              </div>
+              <div class="detail-list__row">
+                <span class="detail-list__key">Periode demo</span>
+                <span class="detail-list__val numeric" id="about-period"></span>
+              </div>
+              <div class="detail-list__row">
+                <span class="detail-list__key">Transaksi demo</span>
+                <span class="detail-list__val numeric" id="about-count"></span>
+              </div>
+            </div>
+            <p class="text-secondary" style="font-size:var(--text-xs);margin-top:var(--space-md)">
+              FinanceTrack adalah aplikasi pelacak keuangan pribadi untuk mahasiswa.
+              Semua data pada versi ini tersimpan di browser dan dapat dihapus sewaktu-waktu.
+            </p>
+          </section>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navigasi bawah">
+    <ul class="bottom-nav__list">
+      <li><a class="bottom-nav__item" href="dashboard.html">
+        <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span> Beranda
+      </a></li>
+      <li><a class="bottom-nav__item" href="transaksi.html">
+        <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Transaksi
+      </a></li>
+      <li><a class="bottom-nav__item bottom-nav__item--fab" href="form-transaksi.html" aria-label="Tambah Transaksi">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      </a></li>
+      <li><a class="bottom-nav__item" href="anggaran.html">
+        <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span> Anggaran
+      </a></li>
+      <li><a class="bottom-nav__item" href="laporan.html">
+        <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Laporan
+      </a></li>
+    </ul>
+  </nav>
+
+  <div class="modal" data-modal role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal__dialog">
+      <div class="modal__icon modal__icon--danger" aria-hidden="true">
+        <span class="material-symbols-outlined">warning</span>
+      </div>
+      <h2 class="modal__title" id="modal-title" data-modal-title>Konfirmasi</h2>
+      <p class="modal__text" data-modal-message>Anda yakin?</p>
+      <div class="modal__actions">
+        <button type="button" class="btn btn--secondary" data-modal-close>Batal</button>
+        <button type="button" class="btn btn--danger" data-modal-confirm>Ya, lanjutkan</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" data-toast role="status" aria-live="polite">
+    <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
+    <div>
+      <p class="toast__title" data-toast-title></p>
+      <p class="toast__message" data-toast-message></p>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var D = FinanceTrackData;
+      var U = FinanceTrack.Utils;
+      var esc = U.escapeHtml;
+      var F = FinanceTrack.Feedback;
+
+      /* --- Daftar kategori --- */
+      var income = D.incomeCategories().length;
+      var expense = D.expenseCategories().length;
+
+      document.getElementById("category-count").textContent =
+        expense + " pengeluaran · " + income + " pemasukan";
+
+      document.getElementById("category-list").innerHTML =
+        '<div class="table-wrap">' +
+        '<table class="table">' +
+          '<caption class="visually-hidden">Daftar kategori transaksi bawaan</caption>' +
+          '<thead><tr><th scope="col">Kategori</th><th scope="col">Jenis</th><th scope="col">Status</th></tr></thead>' +
+          '<tbody>' +
+            D.categories.map(function (c) {
+              var isIncome = c.tipe === "income";
+              var hasBudget = D.budgets.some(function (b) { return b.kategoriId === c.id; });
+              return '<tr>' +
+                '<td><div class="cell-identity">' +
+                  '<span class="cell-icon ' + (isIncome ? "cell-icon--income" : "cell-icon--expense") + '" aria-hidden="true">' +
+                    '<span class="material-symbols-outlined icon-sm">' + esc(c.icon) + '</span></span>' +
+                  '<div class="cell-identity__text">' +
+                    '<span class="cell-identity__title">' + esc(c.nama) + '</span>' +
+                  '</div></div></td>' +
+                '<td><span class="badge ' + (isIncome ? "badge--income" : "badge--expense") + '">' +
+                  (isIncome ? "Pemasukan" : "Pengeluaran") + '</span></td>' +
+                '<td>' + (hasBudget
+                  ? '<span class="badge badge--primary">Ada anggaran</span>'
+                  : '<span class="badge badge--muted">Tanpa batas</span>') + '</td>' +
+              '</tr>';
+            }).join("") +
+          '</tbody>' +
+        '</table></div>';
+
+      /* --- Metode pembayaran --- */
+      document.getElementById("method-list").innerHTML = D.paymentMethods
+        .map(function (m) {
+          return '<span class="badge badge--primary">' + esc(m.nama) + "</span>";
+        })
+        .join("");
+
+      /* --- Tentang --- */
+      document.getElementById("about-period").textContent = D.summary.periode;
+      document.getElementById("about-count").textContent =
+        D.transactions.length + " catatan";
+
+      /* --- Simpan profil --- */
+      document.getElementById("profileForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        F.showToast(
+          "Profil disimpan",
+          "Perubahan profil dicatat untuk sesi ini.",
+          "check_circle"
+        );
+      });
+
+      document.querySelector("[data-reset-profile]").addEventListener("click", function () {
+        document.getElementById("profileForm").reset();
+        F.showToast("Profil dikembalikan", "Field profil dikosongkan kembali.", "undo");
+      });
+
+      document.querySelector("[data-avatar]").addEventListener("click", function () {
+        F.showToast(
+          "Unggah foto",
+          "Pemilih gambar akan aktif setelah integrasi penyimpanan lokal.",
+          "photo_camera"
+        );
+      });
+
+      /* --- Ekspor --- */
+      document.querySelector("[data-export]").addEventListener("click", function () {
+        F.showToast(
+          "Ekspor disiapkan",
+          "File CSV akan dibuat dari " + D.transactions.length + " transaksi demo.",
+          "download"
+        );
+      });
+
+      /* --- Reset ke data demo --- */
+      document.querySelector("[data-reset-demo]").addEventListener("click", function () {
+        F.openModal({
+          title: "Kembalikan ke data demo?",
+          message:
+            "Seluruh perubahan lokal akan dikembalikan ke data contoh bawaan. Tindakan ini tidak dapat dibatalkan.",
+          confirmText: "Ya, kembalikan",
+          onConfirm: function () {
+            F.showToast(
+              "Data dikembalikan",
+              "FinanceTrack kembali ke data demo bawaan.",
+              "restart_alt"
+            );
+          },
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>
