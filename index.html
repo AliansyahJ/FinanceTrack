@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="FinanceTrack — pelacak keuangan pribadi untuk mahasiswa. Catat transaksi, pantau anggaran, dan baca laporan bulanan.">
+  <title>FinanceTrack — Kelola Uang Saku &amp; Keuangan Mahasiswa</title>
+
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <div class="app app--full">
+
+    <header class="landing__topbar">
+      <a class="landing__brand" href="index.html">
+        <img src="assets/img/logo/logo.svg" alt="FinanceTrack" width="132" height="33">
+      </a>
+      <a class="btn btn--primary btn--sm" href="pages/dashboard.html">
+        Buka Aplikasi
+        <span class="material-symbols-outlined icon-sm" aria-hidden="true">arrow_forward</span>
+      </a>
+    </header>
+
+    <main class="landing">
+
+      <!-- Hero -->
+      <section aria-labelledby="hero-title">
+        <span class="badge badge--income">
+          <span class="badge--dot"></span>
+          Milestone 2 · Frontend siap
+        </span>
+
+        <h1 class="landing__title" id="hero-title">
+          Jadikan uang saku lebih terarah,
+          <span class="text-primary">akhir bulanMU lega.</span>
+        </h1>
+
+        <p class="landing__text">
+          FinanceTrack membantu mahasiswa mencatat pemasukan dan pengeluaran harian,
+          menjaga batas anggaran per kategori, dan membaca laporan keuangan
+          sederhana — semua dalam Rupiah, tanpa ribet.
+        </p>
+
+        <div class="row landing__cta">
+          <a class="btn btn--primary" href="pages/dashboard.html">
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">space_dashboard</span>
+            Mulai Catat
+          </a>
+          <a class="btn btn--secondary" href="pages/form-transaksi.html">
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">add</span>
+            Tambah Transaksi
+          </a>
+        </div>
+      </section>
+
+      <!-- Ringkasan angka -->
+      <section class="grid grid--3" style="margin-top:var(--gutter)" aria-label="Ringkasan fitur">
+        <article class="summary-card">
+          <p class="summary-card__label">Pencatatan Harian</p>
+          <p class="summary-card__value numeric">38 transaksi</p>
+          <p class="summary-card__meta">
+            <span class="material-symbols-outlined icon-xs" aria-hidden="true">check_circle</span>
+            Pemasukan &amp; pengeluaran
+          </p>
+        </article>
+
+        <article class="summary-card">
+          <p class="summary-card__label">Anggaran Bulanan</p>
+          <p class="summary-card__value numeric">Rp 3,2 jt</p>
+          <p class="summary-card__meta">
+            <span class="material-symbols-outlined icon-xs" aria-hidden="true">account_balance_wallet</span>
+            7 kategori terpantau
+          </p>
+        </article>
+
+        <article class="summary-card">
+          <p class="summary-card__label">Laporan Otomatis</p>
+          <p class="summary-card__value numeric">6 bulan</p>
+          <p class="summary-card__meta">
+            <span class="material-symbols-outlined icon-xs" aria-hidden="true">bar_chart</span>
+            Tren &amp; komposisi
+          </p>
+        </article>
+      </section>
+
+      <!-- Halaman -->
+      <section style="margin-top:var(--gutter)" aria-labelledby="halaman-heading">
+        <h2 class="section-title" id="halaman-heading" style="margin-bottom:var(--space-md)">Masuk ke Halaman</h2>
+
+        <div class="landing__grid">
+          <a class="landing__card" href="pages/dashboard.html">
+            <span class="cell-icon cell-icon--primary" aria-hidden="true">
+              <span class="material-symbols-outlined">space_dashboard</span>
+            </span>
+            <h3 class="landing__card-title">Dashboard</h3>
+            <p class="landing__card-text">Ringkasan saldo, tren kas, dan komposisi pengeluaran hari ini.</p>
+            <span class="landing__card-link">
+              Buka
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">arrow_forward</span>
+            </span>
+          </a>
+
+          <a class="landing__card" href="pages/transaksi.html">
+            <span class="cell-icon cell-icon--expense" aria-hidden="true">
+              <span class="material-symbols-outlined">receipt_long</span>
+            </span>
+            <h3 class="landing__card-title">Semua Transaksi</h3>
+            <p class="landing__card-text">Cari, filter, sortir, dan hapus riwayat transaksimu.</p>
+            <span class="landing__card-link">
+              Buka
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">arrow_forward</span>
+            </span>
+          </a>
+
+          <a class="landing__card" href="pages/form-transaksi.html">
+            <span class="cell-icon cell-icon--income" aria-hidden="true">
+              <span class="material-symbols-outlined">add_circle</span>
+            </span>
+            <h3 class="landing__card-title">Tambah Transaksi</h3>
+            <p class="landing__card-text">Catat pengeluaran atau pemasukan baru dengan ringkasan langsung.</p>
+            <span class="landing__card-link">
+              Buka
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">arrow_forward</span>
+            </span>
+          </a>
+
+          <a class="landing__card" href="pages/anggaran.html">
+            <span class="cell-icon cell-icon--primary" aria-hidden="true">
+              <span class="material-symbols-outlined">account_balance_wallet</span>
+            </span>
+            <h3 class="landing__card-title">Anggaran</h3>
+            <p class="landing__card-text">Tetapkan batas belanja per kategori dan pantau realisasinya.</p>
+            <span class="landing__card-link">
+              Buka
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">arrow_forward</span>
+            </span>
+          </a>
+
+          <a class="landing__card" href="pages/laporan.html">
+            <span class="cell-icon cell-icon--income" aria-hidden="true">
+              <span class="material-symbols-outlined">bar_chart</span>
+            </span>
+            <h3 class="landing__card-title">Laporan</h3>
+            <p class="landing__card-text">Arus kas harian, komposisi, dan skor kesehatan keuangan.</p>
+            <span class="landing__card-link">
+              Buka
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">arrow_forward</span>
+            </span>
+          </a>
+
+          <a class="landing__card" href="pages/pengaturan.html">
+            <span class="cell-icon cell-icon--expense" aria-hidden="true">
+              <span class="material-symbols-outlined">settings</span>
+            </span>
+            <h3 class="landing__card-title">Pengaturan</h3>
+            <p class="landing__card-text">Atur profil, preferensi tampilan, dan kelola data lokalmu.</p>
+            <span class="landing__card-link">
+              Buka
+              <span class="material-symbols-outlined icon-xs" aria-hidden="true">arrow_forward</span>
+            </span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Catatan -->
+      <section style="margin-top:var(--gutter)" aria-label="Catatan milestone">
+        <div class="callout">
+          <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">info</span>
+          <div>
+            <p class="callout__title">Versi demo (Milestone 2)</p>
+            <p class="callout__text">
+              Seluruh data pada versi ini adalah data contoh dan belum tersimpan permanen.
+              FinanceTrack tidak terhubung ke bank maupun layanan pembayaran apa pun —
+              semua pencatatan berlangsung lokal di browsermu.
+            </p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="assets/js/data.js"></script>
+  <script src="assets/js/script.js"></script>
+
+</body>
+</html>
