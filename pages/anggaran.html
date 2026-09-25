@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Kelola anggaran bulanan FinanceTrack — pantau batas pengeluaran per kategori dengan progress bar dan status.">
+  <title>Anggaran · FinanceTrack</title>
+
+  <link rel="icon" type="image/svg+xml" href="../assets/img/logo/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar__brand">
+      <img src="../assets/img/logo/logo.svg" alt="FinanceTrack" width="120" height="30">
+      <button type="button" class="sidebar__close" data-sidebar-close aria-label="Tutup menu">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+    <nav class="sidebar__nav" aria-label="Navigasi utama">
+      <p class="sidebar__label">Menu</p>
+      <ul>
+        <li><a class="nav-item" href="dashboard.html">
+          <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span> Dashboard
+        </a></li>
+        <li>
+          <button type="button" class="nav-item" data-submenu-trigger aria-expanded="false" aria-controls="submenu-transaksi" style="width:100%">
+            <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Transaksi
+            <span class="material-symbols-outlined icon-xs" aria-hidden="true" style="margin-left:auto">expand_more</span>
+          </button>
+          <ul class="nav-sublist" id="submenu-transaksi">
+            <li><a class="nav-subitem" href="transaksi.html">Semua Transaksi</a></li>
+            <li><a class="nav-subitem" href="form-transaksi.html">Tambah Transaksi</a></li>
+          </ul>
+        </li>
+        <li><a class="nav-item is-active" href="anggaran.html" aria-current="page">
+          <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span> Anggaran
+        </a></li>
+        <li><a class="nav-item" href="laporan.html">
+          <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Laporan
+        </a></li>
+        <li><a class="nav-item" href="pengaturan.html">
+          <span class="material-symbols-outlined" aria-hidden="true">settings</span> Pengaturan
+        </a></li>
+      </ul>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <span class="sidebar__avatar" aria-hidden="true">FP</span>
+        <div>
+          <p class="sidebar__user-name">Fikri Juana</p>
+          <p class="sidebar__user-role">Mahasiswa</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="sidebar-backdrop" data-sidebar-close></div>
+
+  <div class="app">
+    <header class="app__header">
+      <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
+        <span class="material-symbols-outlined">menu</span>
+      </button>
+      <div class="app__header-title">
+        <span class="app__header-brand">FinanceTrack</span>
+        <span class="app__header-name">Anggaran</span>
+      </div>
+    </header>
+
+    <main class="app__main">
+
+      <div class="page-header">
+        <div>
+          <p class="eyebrow">
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">pie_chart</span>
+            Perencanaan Finansial
+          </p>
+          <h1 class="page-title">Manajemen Anggaran</h1>
+          <p class="page-subtitle">Tetapkan batas pengeluaran bulanan per kategori dan pantau pemakaiannya secara berkala.</p>
+        </div>
+        <div class="page-header__actions">
+          <div class="row" style="padding:0.5rem var(--space-md);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-xs)">
+            <span class="material-symbols-outlined icon-sm text-muted" aria-hidden="true">calendar_today</span>
+            <span style="font-weight:500">Oktober 2024</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total banner -->
+      <section class="card card--pad" aria-labelledby="total-anggaran-heading">
+        <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
+          <div>
+            <span class="badge badge--income">
+              <span class="badge--dot"></span>
+              Status: Terkendali
+            </span>
+            <p class="summary-card__label" id="total-anggaran-heading" style="margin-top:var(--space-sm)">Total Terpakai Bulan Ini</p>
+            <div class="row" style="align-items:baseline;gap:var(--space-sm);flex-wrap:wrap">
+              <span class="numeric" style="font-size:var(--text-4xl);font-weight:700;letter-spacing:-0.025em">Rp 2.150.000</span>
+              <span class="text-secondary">/ Rp 3.200.000</span>
+            </div>
+            <p class="text-secondary" style="font-size:var(--text-sm);display:flex;align-items:center;gap:var(--space-xs);margin-top:var(--space-xs)">
+              <span class="material-symbols-outlined icon-sm" style="color:var(--success)" aria-hidden="true">verified</span>
+              Tersisa 7 hari dalam Oktober. Pengeluaran uang saku terkendali.
+            </p>
+          </div>
+
+          <div class="grid grid--3" style="flex:1;min-width:280px">
+            <div class="mini-stat">
+              <span class="mini-stat__label">Alokasi Terpakai</span>
+              <span class="mini-stat__value" style="color:var(--primary)">67,2%</span>
+              <span class="text-secondary numeric" style="font-size:var(--text-xs)">Rp 2.150.000</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__label">Sisa Anggaran</span>
+              <span class="mini-stat__value text-income">32,8%</span>
+              <span class="text-secondary numeric" style="font-size:var(--text-xs)">Rp 1.050.000</span>
+            </div>
+            <div class="mini-stat">
+              <span class="mini-stat__label">Plafon Harian Aman</span>
+              <span class="mini-stat__value">Rp 150.000</span>
+              <span class="text-secondary numeric" style="font-size:var(--text-xs)">per hari (sisa 7 hari)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Master progress -->
+        <div style="padding:var(--space-md);background:var(--surface-alt);border-radius:var(--radius-lg)">
+          <div class="row row--between row--wrap" style="font-size:var(--text-xs);color:var(--text-secondary);margin-bottom:var(--space-sm)">
+            <span class="row" style="gap:var(--space-xs)">
+              <span style="width:12px;height:12px;border-radius:3px;background:var(--primary);display:inline-block"></span>
+              Realisasi Pengeluaran (67,2%)
+            </span>
+            <span class="row" style="gap:var(--space-xs)">
+              <span style="width:12px;height:12px;border-radius:3px;background:var(--border-strong);display:inline-block"></span>
+              Kapasitas Tersedia: Rp 1.050.000
+            </span>
+          </div>
+          <div class="progress progress--thick">
+            <div class="progress__bar" style="width:67.2%"></div>
+          </div>
+          <div class="row row--between row--wrap" style="font-size:var(--text-xs);color:var(--text-secondary);margin-top:var(--space-sm)">
+            <span>Hari ke-24 / 31 (target ideal 77,4%)</span>
+            <span class="text-income" style="font-weight:600">Lebih hemat 10,2% dari target</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Kategori + form -->
+      <div class="grid grid--sidebar-left" style="margin-top:var(--gutter)">
+
+        <!-- Form set batas -->
+        <div class="stack">
+          <section class="card card--pad" aria-labelledby="set-batas-heading">
+            <h2 class="section-title" id="set-batas-heading">Tetapkan Batas Anggaran</h2>
+            <p class="page-subtitle" style="margin-bottom:var(--space-lg)">
+              Tentukan plafon belanja spesifik agar pengeluaran tetap terkendali.
+            </p>
+
+            <form class="stack" id="budgetForm" novalidate>
+              <div class="field">
+                <label class="field__label" for="budget-category">Kategori</label>
+                <select class="select" id="budget-category" data-budget-select></select>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="budget-limit">Batas Anggaran</label>
+                <div class="currency-input">
+                  <span class="currency-input__prefix" aria-hidden="true">Rp</span>
+                  <input type="text" class="input numeric" id="budget-limit"
+                         data-budget-limit inputmode="numeric" placeholder="0">
+                </div>
+                <p class="field__hint">Masukkan angka kelipatan Rp 10.000</p>
+              </div>
+
+              <div class="row row--between" style="padding:var(--space-md);background:var(--surface-alt);border-radius:var(--radius-md)">
+                <div>
+                  <p style="font-weight:600;font-size:var(--text-base);margin:0">Notifikasi Peringatan</p>
+                  <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Ingatkan saat pemakaian mencapai 80%</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" checked aria-label="Aktifkan notifikasi peringatan anggaran">
+                  <span class="switch__track"></span>
+                </label>
+              </div>
+
+              <button type="submit" class="btn btn--primary btn--block">
+                <span class="material-symbols-outlined icon-sm" aria-hidden="true">check</span>
+                Terapkan Anggaran
+              </button>
+            </form>
+
+            <div class="callout" style="margin-top:var(--space-md)">
+              <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">tips_and_updates</span>
+              <div>
+                <p class="callout__title">Tips Efisiensi</p>
+                <p class="callout__text">Alokasikan 50% pemasukan ke kebutuhan pokok, 30% keFlexibel, dan sisanya ditabung.</p>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Budget per kategori -->
+        <section class="card card--pad" aria-labelledby="kategori-heading">
+          <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
+            <div class="row">
+              <h2 class="section-title" id="kategori-heading">Batas per Kategori</h2>
+              <span class="badge badge--muted">7 pos aktif</span>
+            </div>
+            <div class="row">
+              <label class="visually-hidden" for="sort-budget">Urutkan anggaran</label>
+              <select class="select" id="sort-budget" data-budget-sort style="min-height:36px;font-size:var(--text-sm);width:auto">
+                <option value="persen">Persentase Tertinggi</option>
+                <option value="nominal">Nominal Terbesar</option>
+                <option value="nama">Nama Kategori</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid--2" id="budget-list">
+            <!-- diisi oleh script -->
+          </div>
+        </section>
+      </div>
+
+    </main>
+  </div>
+
+  <nav class="bottom-nav" aria-label="Navigasi bawah">
+    <ul class="bottom-nav__list">
+      <li><a class="bottom-nav__item" href="dashboard.html">
+        <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span> Beranda
+      </a></li>
+      <li><a class="bottom-nav__item" href="transaksi.html">
+        <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Transaksi
+      </a></li>
+      <li><a class="bottom-nav__item bottom-nav__item--fab" href="form-transaksi.html" aria-label="Tambah Transaksi">
+        <span class="material-symbols-outlined" aria-hidden="true">add</span>
+      </a></li>
+      <li><a class="bottom-nav__item is-active" href="anggaran.html" aria-current="page">
+        <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span> Anggaran
+      </a></li>
+      <li><a class="bottom-nav__item" href="laporan.html">
+        <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Laporan
+      </a></li>
+    </ul>
+  </nav>
+
+  <div class="toast" data-toast role="status" aria-live="polite">
+    <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
+    <div>
+      <p class="toast__title" data-toast-title></p>
+      <p class="toast__message" data-toast-message></p>
+    </div>
+  </div>
+
+  <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/script.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      var D = FinanceTrackData;
+      var U = FinanceTrack.Utils;
+      var esc = U.escapeHtml;
+      var listEl = document.getElementById("budget-list");
+      var sortSel = document.querySelector("[data-budget-sort]");
+      var catSel = document.querySelector("[data-budget-select]");
+      var limitInput = document.querySelector("[data-budget-limit]");
+
+      /* --- Dropdown kategori (hanya expense) --- */
+      D.expenseCategories().forEach(function (c) {
+        var o = document.createElement("option");
+        o.value = c.id;
+        o.textContent = c.nama;
+        catSel.appendChild(o);
+      });
+
+      /* --- Render kartu anggaran --- */
+      function renderCards() {
+        var mode = sortSel ? sortSel.value : "persen";
+        var items = D.budgets.slice();
+
+        items.sort(function (a, b) {
+          if (mode === "nominal") return b.batas - a.batas;
+          if (mode === "nama") {
+            return D.getCategory(a.kategoriId).nama.localeCompare(D.getCategory(b.kategoriId).nama);
+          }
+          return U.percent(b.terpakai, b.batas) - U.percent(a.terpakai, a.batas);
+        });
+
+        listEl.innerHTML = items.map(function (b) {
+          var cat = D.getCategory(b.kategoriId);
+          var pct = U.percent(b.terpakai, b.batas);
+          var sisa = b.batas - b.terpakai;
+
+          var status;
+          if (pct >= 100) {
+            status = { cls: "budget-card__status--over", icon: "error", text: "Melebihi Batas" };
+          } else if (pct >= 80) {
+            status = { cls: "budget-card__status--warn", icon: "warning", text: "Waspada" };
+          } else if (pct >= 50) {
+            status = { cls: "budget-card__status--safe", icon: "check_circle", text: "Aman Terkendali" };
+          } else {
+            status = { cls: "budget-card__status--safe", icon: "check_circle", text: "Alokasi Longgar" };
+          }
+
+          var iconTone = pct >= 80 ? "cell-icon--expense" : "cell-icon--primary";
+
+          return '<article class="budget-card" data-budget-card ' +
+                   'data-budget-spent="' + b.terpakai + '" data-budget-limit="' + b.batas + '">' +
+            '<div class="budget-card__head">' +
+              '<div class="cell-identity">' +
+                '<span class="cell-icon ' + iconTone + '" aria-hidden="true">' +
+                  '<span class="material-symbols-outlined icon-sm">' + esc(b.icon) + '</span>' +
+                '</span>' +
+                '<div class="cell-identity__text">' +
+                  '<h3 class="cell-identity__title">' + esc(cat.nama) + '</h3>' +
+                  '<p class="cell-identity__sub">' + esc(b.catatan) + '</p>' +
+                '</div>' +
+              '</div>' +
+              '<span class="badge ' + (pct >= 100 ? "badge--expense" : pct >= 80 ? "badge--warning" : "badge--income") + '" ' +
+                'data-budget-pct>' + pct.toFixed(1) + '%</span>' +
+            '</div>' +
+            '<div class="budget-card__figures">' +
+              '<span class="budget-card__spent">' + esc(U.formatRupiah(b.terpakai)) + '</span>' +
+              '<span class="budget-card__limit">dari ' + esc(U.formatRupiah(b.batas)) + '</span>' +
+            '</div>' +
+            /* Kelas & lebar progress bar diurus oleh FinanceTrack.BudgetUI. */
+            '<div class="progress"><div class="progress__bar" data-budget-bar style="width:0%"></div></div>' +
+            '<div class="grid grid--2" style="gap:var(--space-sm)">' +
+              '<div class="mini-stat">' +
+                '<span class="mini-stat__label">Rata-rata / hari</span>' +
+                '<span class="mini-stat__value numeric" style="font-size:var(--text-sm)">' +
+                  esc(U.formatRupiah(Math.round(b.terpakai / D.summary.tanggal))) + '</span>' +
+              '</div>' +
+              '<div class="mini-stat">' +
+                '<span class="mini-stat__label">Sisa alokasi</span>' +
+                '<span class="mini-stat__value numeric ' + (sisa >= 0 ? "text-income" : "text-expense") + '" ' +
+                  'style="font-size:var(--text-sm)" data-budget-remaining>' + esc(U.formatRupiah(Math.abs(sisa))) + '</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="budget-card__foot">' +
+              '<span class="budget-card__status ' + status.cls + '">' +
+                '<span class="material-symbols-outlined icon-xs" aria-hidden="true">' + status.icon + '</span>' +
+                esc(status.text) +
+              '</span>' +
+              '<a class="budget-card__link" href="transaksi.html">Rincian' +
+                '<span class="material-symbols-outlined icon-xs" aria-hidden="true">chevron_right</span>' +
+              '</a>' +
+            '</div>' +
+          '</article>';
+        }).join("");
+
+        /* Warnai progress bar via BudgetUI */
+        FinanceTrack.BudgetUI.init();
+      }
+
+      renderCards();
+      if (sortSel) sortSel.addEventListener("change", renderCards);
+
+      /* --- Isi batas otomatis sesuai kategori terpilih --- */
+      function syncLimit() {
+        var b = D.budgets.find(function (x) { return x.kategoriId === catSel.value; });
+        limitInput.value = b ? U.thousands(b.batas) : "";
+      }
+      catSel.addEventListener("change", syncLimit);
+      syncLimit();
+
+      /* --- Format input batas --- */
+      limitInput.addEventListener("input", function (e) {
+        var digits = e.target.value.replace(/\D/g, "");
+        e.target.value = digits ? U.thousands(digits) : "";
+      });
+
+      /* --- Submit form batas (mock) --- */
+      document.getElementById("budgetForm").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var cat = D.getCategory(catSel.value);
+        var value = U.parseRupiah(limitInput.value);
+
+        if (!value) {
+          FinanceTrack.Feedback.showToast(
+            "Batas belum diisi",
+            "Masukkan nominal batas anggaran terlebih dahulu.",
+            "error"
+          );
+          return;
+        }
+
+        FinanceTrack.Feedback.showToast(
+          "Anggaran diperbarui",
+          "Batas " + cat.nama + " ditetapkan " + U.formatRupiah(value) + " per bulan.",
+          "check_circle"
+        );
+      });
+    });
+  </script>
+
+</body>
+</html>
