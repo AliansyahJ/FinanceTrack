@@ -160,14 +160,14 @@ Contoh skenario penggunaan utama aplikasi:
 Milestone 1 akan menyerahkan komponen berikut:
 - Dokumen **PERANCANGAN.md** (file markdown) berisi seluruh perencanaan menu dan UI (seperti saat ini).  
 - **Wireframe** 5 layar utama (Dashboard, Semua Transaksi, Tambah Transaksi, Anggaran, Laporan) yang digambarkan di Google Stitch (sebagai screenshot).  
-- Link publik Figma (sebagai placeholder, untuk Milestone 2 nanti).  
+- Link publik Figma yang berisi Design System, High-Fidelity Dashboard, dan Data Master (Semua Transaksi).  
 - Diagram **ERD** (di atas) dalam format Mermaid.  
 - **User Flow** narasi dan diagram (di atas).  
 
 ## Pemetaan Kriteria Penilaian
 Setiap bagian dokumen ini dirancang untuk memenuhi kriteria tugas Milestone 1:
 - **Struktur Menu/Hierarki:** Bagian *Struktur Menu* dan *Deskripsi Halaman* memenuhi kebutuhan hierarki menu yang jelas sesuai instruksi tugas.  
-- **Perancangan UI (Wireframing):** Prompt Google Stitch (di bagian akhir) menyiapkan wireframe modern untuk 5 layar utama, sesuai tema keuangan dan kriteria UI.  
+- **Perancangan UI (Wireframing):** Google Stitch digunakan untuk membuat wireframe 5 layar utama. Hasilnya kemudian diekspor ke Figma dan dikembangkan menjadi Design System serta High-Fidelity UI untuk Dashboard dan Data Master.  
 - **ER-D dan Use-case:** Diagram ERD dan skenario use-case menunjukkan rancangan basis data dan kebutuhan fungsional pengguna, seperti diinstruksikan.  
 - **Dokumen Markdown:** Format terstruktur (judul, subjudul, tabel, list) memudahkan penilaian. Isi dokumen mencakup identitas, deskripsi, tujuan, target, fitur, user flow, deliverable, dan rencana kerja.  
 - **Penggunaan Diagram & Desain:** Mermaid digunakan untuk flowchart, ER-D, dan gantt (timeline) sesuai permintaan tugas. Gaya UI diperhatikan dengan konsistensi warna dan tipografi jelas.
@@ -181,6 +181,19 @@ Setiap bagian dokumen ini dirancang untuk memenuhi kriteria tugas Milestone 1:
 - **Anggaran:** "Buatlah wireframe halaman *Anggaran*. Halaman berisi form untuk menetapkan batas anggaran per kategori (input kategori, limit). Sertakan visualisasi ringkas (misalnya progress bar) yang menunjukkan persentase penggunaan anggaran. Gaya UI modern dengan warna netral dan tata letak jelas."
 - **Laporan:** "Buatlah wireframe halaman *Laporan*. Halaman menampilkan grafik bulanan (bar chart atau line chart) pendapatan vs pengeluaran. Desain minimalis namun informatif, dengan keterangan jelas. Warna netral dan tipografi konsisten."
 ```
+
+## Design System & High-Fidelity UI – Figma
+
+Perancangan visual high-fidelity FinanceTrack dibuat menggunakan Figma dengan acuan
+Design System yang telah disusun. Design System mencakup color palette, typography,
+button, input, search, card, badge, progress bar, dan transaction table.
+
+High-Fidelity UI yang telah dibuat meliputi:
+1. **Design System** – fondasi warna, tipografi, dan komponen antarmuka.
+2. **Dashboard** – ringkasan saldo, pemasukan, pengeluaran, anggaran, grafik, dan transaksi terbaru.
+3. **Data Master / Semua Transaksi** – tabel transaksi, pencarian, filter, ringkasan data, serta aksi edit/hapus.
+
+**Link Figma:** [TEMPATKAN LINK FIGMA DI SINI]
 
 ## UI Wireframe – Google Stitch
 
@@ -215,3 +228,21 @@ Wireframe mencakup lima halaman utama, yaitu:
 ![Laporan FinanceTrack](../assets/img/stitch/laporan.png)
 
 **Link Google Stitch:** [(https://stitch.withgoogle.com/projects/3478365220676083171)]
+
+
+## Hasil High-Fidelity UI – Figma
+
+### Design System
+Design System FinanceTrack memuat color palette, typography, dan komponen UI yang
+digunakan secara konsisten pada halaman aplikasi.
+
+### Dashboard
+High-Fidelity Dashboard menampilkan ringkasan saldo, pemasukan, pengeluaran,
+anggaran, grafik tren keuangan, dan transaksi terbaru.
+
+### Data Master – Semua Transaksi
+High-Fidelity Data Master menampilkan tabel transaksi dengan pencarian, filter,
+ringkasan pemasukan/pengeluaran, serta aksi edit dan hapus.
+
+**Link Figma:** [(https://www.figma.com/design/m9ngc2WcRYET36eKg1yR8w/FinanceTrack-%E2%80%94-UI-Design?node-id=0-1&t=gT2c4fb5wPVHOZU6-1)]
+
