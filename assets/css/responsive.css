@@ -35,6 +35,9 @@
   .app__header {
     display: flex;
   }
+  .app__topbar {
+    display: none;
+  }
   .sidebar-toggle {
     display: grid !important;
   }
@@ -133,6 +136,29 @@
     flex: 1 1 100%;
   }
 
+  /* Filter lanjutan disembunyikan, dibuka lewat tombol "Filter Lengkap" */
+  .filter-bar__advanced {
+    display: inline-flex;
+  }
+  .filter-bar__controls {
+    display: none;
+  }
+  .filter-bar__controls.is-open {
+    display: flex;
+  }
+
+  /* Aksi form transaksi — tumpuk vertikal seperti Stitch mobile */
+  .form-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .form-actions__group {
+    width: 100%;
+  }
+  .form-actions__group .btn {
+    flex: 1;
+  }
+
   .modal__dialog {
     max-width: 100%;
   }
@@ -171,6 +197,12 @@
   .detail-list__val {
     text-align: left;
   }
+  /* Tombol aksi form: biarkan wrap, jangan dipaksa satu baris
+     (teks .btn nowrap, "Simpan & Tambah Lagi" + "Simpan Transaksi"
+     tidak muat berdampingan di 375px). */
+  .form-actions__group .btn {
+    flex: 1 1 auto;
+  }
 }
 
 /* --- Print --- */
@@ -178,6 +210,7 @@
   .sidebar,
   .bottom-nav,
   .app__header,
+  .app__topbar,
   .sidebar-backdrop,
   .page-header__actions,
   .toast {

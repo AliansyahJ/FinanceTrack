@@ -3,15 +3,17 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Semua transaksi FinanceTrack â€” riwayat lengkap pemasukan dan pengeluaran dengan pencarian, filter, dan pagination.">
-  <title>Semua Transaksi Â· FinanceTrack</title>
+  <meta name="description" content="Semua transaksi FinanceTrack — riwayat lengkap pemasukan dan pengeluaran dengan pencarian, filter, dan pagination.">
+  <title>Semua Transaksi · FinanceTrack</title>
 
   <link rel="icon" type="image/svg+xml" href="../assets/img/logo/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">`n  <link rel="stylesheet" href="../assets/css/style.css">`n  <link rel="stylesheet" href="../assets/css/responsive.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
 
@@ -26,7 +28,7 @@
       <p class="sidebar__label">Menu</p>
       <ul>
         <li><a class="nav-item" href="dashboard.html">
-          <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span> Dashboard
+          <span class="material-symbols-outlined" aria-hidden="true">grid_view</span> Dashboard
         </a></li>
         <li>
           <button type="button" class="nav-item" data-submenu-trigger aria-expanded="true" aria-controls="submenu-transaksi" style="width:100%">
@@ -39,10 +41,10 @@
           </ul>
         </li>
         <li><a class="nav-item" href="anggaran.html">
-          <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span> Anggaran
+          <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span> Anggaran
         </a></li>
         <li><a class="nav-item" href="laporan.html">
-          <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Laporan
+          <span class="material-symbols-outlined" aria-hidden="true">monitoring</span> Laporan
         </a></li>
         <li><a class="nav-item" href="pengaturan.html">
           <span class="material-symbols-outlined" aria-hidden="true">settings</span> Pengaturan
@@ -161,13 +163,28 @@
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">close</span>
             </button>
           </div>
+          <button type="button" class="btn btn--ghost filter-bar__advanced" data-filter-advanced
+                  aria-expanded="false" aria-controls="filter-advanced">
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">tune</span>
+            Filter Lengkap
+          </button>
           <button type="button" class="btn btn--ghost" data-filter-reset>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">restart_alt</span>
             Reset
           </button>
         </div>
 
-        <div class="filter-bar__controls">
+        <!-- Quick filter pills (Stitch) -->
+        <div class="filter-bar__pills" role="group" aria-label="Filter cepat">
+          <button type="button" class="filter-pill is-active" data-quick-filter data-type="all" data-cat="all">Semua</button>
+          <button type="button" class="filter-pill" data-quick-filter data-type="expense" data-cat="all">Pengeluaran</button>
+          <button type="button" class="filter-pill" data-quick-filter data-type="income" data-cat="all">Pemasukan</button>
+          <button type="button" class="filter-pill" data-quick-filter data-type="all" data-cat="makanan">Makanan</button>
+          <button type="button" class="filter-pill" data-quick-filter data-type="all" data-cat="all" data-search="kos">Kost</button>
+          <button type="button" class="filter-pill" data-quick-filter data-type="all" data-cat="kuliah">Kuliah</button>
+        </div>
+
+        <div class="filter-bar__controls" id="filter-advanced">
           <div class="filter-bar__control">
             <label for="filter-type">Jenis</label>
             <select class="select" id="filter-type" data-filter-type>
@@ -207,7 +224,7 @@
         <div class="card__header">
           <div>
             <h2 class="section-title" id="tabel-transaksi-heading">Riwayat Transaksi</h2>
-            <p class="section-subtitle" data-tx-info>Memuat dataâ€¦</p>
+            <p class="section-subtitle" data-tx-info>Memuat data—</p>
           </div>
         </div>
 
@@ -313,7 +330,8 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>`n  <script src="../assets/js/data.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="../assets/js/data.js"></script>
   <script src="../assets/js/script.js"></script>
   <script>
     /* Bangun baris tabel & filter kategori dari mock data. */
@@ -409,7 +427,7 @@
             '</span>' +
             '<div class="cell-identity__text">' +
               '<p class="cell-identity__title">' + esc(t.deskripsi) + '</p>' +
-              '<p class="cell-identity__sub">' + esc(cat.nama) + ' Â· ' + esc(method.nama) + ' Â· ' +
+              '<p class="cell-identity__sub">' + esc(cat.nama) + ' · ' + esc(method.nama) + ' · ' +
                 esc(U.formatTanggal(t.tanggal)) + '</p>' +
             '</div>' +
           '</div>' +
@@ -434,6 +452,52 @@
          search/filter/pagination/action ikut aktif. */
       FinanceTrack.TransactionTable.refreshRows();
 
+      /* --- Quick filter pills + panel filter lanjutan (Stitch) --- */
+      var TT = FinanceTrack.TransactionTable;
+      var typeSel = document.querySelector("[data-filter-type]");
+      var catSel = document.querySelector("[data-filter-category]");
+      var searchInput = document.querySelector("[data-search]");
+      var searchClear = document.querySelector("[data-search-clear]");
+      var pills = Array.prototype.slice.call(document.querySelectorAll("[data-quick-filter]"));
+
+      function syncPills() {
+        var t = typeSel.value, c = catSel.value;
+        var s = (searchInput.value || "").trim().toLowerCase();
+        pills.forEach(function (p) {
+          var match = (p.dataset.type || "all") === t &&
+                      (p.dataset.cat || "all") === c &&
+                      (p.dataset.search || "") === s;
+          p.classList.toggle("is-active", match);
+        });
+      }
+
+      pills.forEach(function (p) {
+        p.addEventListener("click", function () {
+          typeSel.value = p.dataset.type || "all";
+          catSel.value = p.dataset.cat || "all";
+          searchInput.value = p.dataset.search || "";
+          if (searchClear) searchClear.classList.toggle("is-visible", searchInput.value.length > 0);
+          syncPills();
+          TT.applyFilters();
+        });
+      });
+
+      [typeSel, catSel].forEach(function (el) { el.addEventListener("change", syncPills); });
+      searchInput.addEventListener("input", syncPills);
+      document.querySelector("[data-filter-reset]").addEventListener("click", function () {
+        setTimeout(syncPills, 0);
+      });
+
+      /* Panel filter lanjutan (hanya tampil lewat tombol di mobile) */
+      var advBtn = document.querySelector("[data-filter-advanced]");
+      var advPanel = document.getElementById("filter-advanced");
+      if (advBtn && advPanel) {
+        advBtn.addEventListener("click", function () {
+          var open = advPanel.classList.toggle("is-open");
+          advBtn.setAttribute("aria-expanded", open ? "true" : "false");
+        });
+      }
+
       /* --- Export CSV (mock: hanya toast) --- */
       document.getElementById("btnExport").addEventListener("click", function () {
         FinanceTrack.Feedback.showToast(
@@ -447,5 +511,3 @@
 
 </body>
 </html>
-
-

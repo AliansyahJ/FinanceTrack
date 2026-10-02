@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -31,7 +31,7 @@
       <ul>
         <li>
           <a class="nav-item is-active" href="dashboard.html" aria-current="page">
-            <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span>
+            <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
             Dashboard
           </a>
         </li>
@@ -49,13 +49,13 @@
         </li>
         <li>
           <a class="nav-item" href="anggaran.html">
-            <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span>
+            <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
             Anggaran
           </a>
         </li>
         <li>
           <a class="nav-item" href="laporan.html">
-            <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span>
+            <span class="material-symbols-outlined" aria-hidden="true">monitoring</span>
             Laporan
           </a>
         </li>
@@ -90,6 +90,30 @@
   <!-- Content area -->
   <div class="app">
 
+    <!-- Desktop top bar (Stitch: pencarian, notifikasi, profil) -->
+    <header class="app__topbar">
+      <div class="input-group">
+        <span class="material-symbols-outlined" aria-hidden="true">search</span>
+        <input type="text" class="input" autocomplete="off"
+               aria-label="Cari mutasi, kategori, nominal"
+               placeholder="Cari mutasi, kategori, nominal...">
+      </div>
+      <div class="row" style="gap:var(--space-md)">
+        <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          <span class="topbar__dot" aria-hidden="true"></span>
+        </button>
+        <div class="sidebar__user">
+          <span class="sidebar__avatar" aria-hidden="true">FP</span>
+          <div>
+            <div class="sidebar__user-name">Fikri Juana</div>
+            <div class="sidebar__user-role">Mahasiswa</div>
+          </div>
+          <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
+        </div>
+      </div>
+    </header>
+
     <!-- Mobile header -->
     <header class="app__header">
       <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
@@ -110,7 +134,7 @@
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">bolt</span>
             Ringkasan Real-Time
           </p>
-          <h1 class="page-title">Halo, Fikri 👋</h1>
+          <h1 class="page-title">Halo, Fikri Juana</h1>
           <p class="page-subtitle">Pantau uang saku, penghasilan sampingan, dan belanja harianmu bulan ini.</p>
         </div>
         <div class="page-header__actions">

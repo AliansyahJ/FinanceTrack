@@ -787,9 +787,7 @@
       const form = Utils.qs("[data-tx-form]");
       if (!form) return;
 
-      form.addEventListener("submit", (e) => {
-        e.preventDefault();
-
+      const save = (addMore) => {
         const amount = Utils.parseRupiah(Utils.qs("[data-field-amount]")?.value);
         const desc = (Utils.qs("[data-field-desc]")?.value || "").trim();
 
@@ -821,17 +819,39 @@
         }
 
         const isIncome = this.currentType === "income";
-        Feedback.showToast(
-          isIncome ? "Pemasukan tersimpan" : "Pengeluaran tersimpan",
-          `${Utils.formatRupiah(amount)} untuk "${desc}" berhasil dicatat.`,
-          "check_circle"
-        );
+        if (addMore) {
+          Feedback.showToast(
+            "Transaksi tersimpan",
+            `${Utils.formatRupiah(amount)} untuk "${desc}" tercatat. Silakan isi transaksi berikutnya.`,
+            "check_circle"
+          );
+        } else {
+          Feedback.showToast(
+            isIncome ? "Pemasukan tersimpan" : "Pengeluaran tersimpan",
+            `${Utils.formatRupiah(amount)} untuk "${desc}" berhasil dicatat.`,
+            "check_circle"
+          );
+        }
 
         // Reset form (Milestone 2 belum menyimpan ke storage).
         form.reset();
         this.updateCategoryOptions(this.currentType);
         this.updatePreview();
+
+        if (addMore) {
+          Utils.qs("[data-field-amount]")?.focus();
+        }
+      };
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+        save(false);
       });
+
+      const saveMore = Utils.qs("[data-save-more]");
+      if (saveMore) {
+        saveMore.addEventListener("click", () => save(true));
+      }
     },
 
     setupCancel() {
