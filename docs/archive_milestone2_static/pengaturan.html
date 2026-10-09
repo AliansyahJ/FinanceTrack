@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -65,6 +65,36 @@
   <div class="sidebar-backdrop" data-sidebar-close></div>
 
   <div class="app">
+    <!-- Desktop top bar -->
+    <header class="app__topbar">
+      <div class="row align-items-center" style="gap:var(--space-md);flex:0 1 450px">
+        <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka/Tutup menu" aria-controls="sidebar">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="input-group" style="flex:1">
+          <span class="material-symbols-outlined" aria-hidden="true">search</span>
+          <input type="text" class="input" autocomplete="off"
+                 aria-label="Cari mutasi, kategori, nominal"
+                 placeholder="Cari mutasi, kategori, nominal..."
+                 data-topbar-search>
+        </div>
+      </div>
+      <div class="row" style="gap:var(--space-md);align-items:center">
+        <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          <span class="topbar__dot" aria-hidden="true"></span>
+        </button>
+        <a class="sidebar__user" href="pengaturan.html" style="text-decoration:none;color:inherit">
+          <span class="sidebar__avatar" aria-hidden="true" data-user-avatar>FP</span>
+          <div>
+            <div class="sidebar__user-name" data-user-name>Fikri Juana</div>
+            <div class="sidebar__user-role" data-user-role>Mahasiswa</div>
+          </div>
+          <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
+        </a>
+      </div>
+    </header>
+
     <header class="app__header">
       <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
         <span class="material-symbols-outlined">menu</span>
@@ -299,6 +329,22 @@
             </p>
           </section>
 
+          <!-- Sesi & Akun -->
+          <section class="card card--pad" aria-labelledby="akun-heading">
+            <h2 class="section-title" id="akun-heading">Sesi &amp; Akun</h2>
+            <div class="row" style="gap:var(--space-md);align-items:center;margin:var(--space-md) 0">
+              <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:48px;height:48px;font-size:var(--text-md)">FP</span>
+              <div style="flex:1;min-width:0">
+                <div class="sidebar__user-name" data-user-name style="font-weight:600">Fikri Juana</div>
+                <div class="sidebar__user-role text-secondary" data-user-email style="font-size:var(--text-xs)">demo@financetrack.test</div>
+              </div>
+            </div>
+            <a href="../auth/logout.php" class="btn btn--secondary btn--block text-danger" style="display:flex;align-items:center;justify-content:center;gap:var(--space-xs);text-decoration:none">
+              <span class="material-symbols-outlined icon-sm">logout</span>
+              Keluar dari Akun
+            </a>
+          </section>
+
         </div>
       </div>
 
@@ -349,6 +395,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/api.js"></script>
   <script src="../assets/js/script.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -425,14 +472,13 @@
         );
       });
 
-      /* --- Ekspor --- */
-      document.querySelector("[data-export]").addEventListener("click", function () {
-        F.showToast(
-          "Ekspor disiapkan",
-          "File CSV akan dibuat dari " + D.transactions.length + " transaksi demo.",
-          "download"
-        );
-      });
+      /* --- Ekspor nyata --- */
+      var exportBtn = document.querySelector("[data-export]");
+      if (exportBtn) {
+        exportBtn.addEventListener("click", function () {
+          window.location.href = "../api/reports/export_csv.php";
+        });
+      }
 
       /* --- Reset ke data demo --- */
       document.querySelector("[data-reset-demo]").addEventListener("click", function () {
@@ -442,6 +488,11 @@
             "Seluruh perubahan lokal akan dikembalikan ke data contoh bawaan. Tindakan ini tidak dapat dibatalkan.",
           confirmText: "Ya, kembalikan",
           onConfirm: function () {
+            if (typeof D.resetAll === "function") {
+              D.resetAll();
+            }
+            document.getElementById("about-count").textContent =
+              D.transactions.length + " catatan";
             F.showToast(
               "Data dikembalikan",
               "FinanceTrack kembali ke data demo bawaan.",

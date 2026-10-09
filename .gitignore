@@ -3,6 +3,7 @@
 .idea/
 *.swp
 *.swo
+.agents/
 
 # OS
 .DS_Store
@@ -31,6 +32,11 @@ build/
 # Project specific - excluded per user request
 plan.md
 stitch_financetrack_app_wireframes/
+
+# Uploads
+uploads/*
+!uploads/.gitkeep
+!uploads/**/.gitkeep
 
 # Package manager
 package-lock.json

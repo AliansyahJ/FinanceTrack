@@ -95,12 +95,31 @@
   /* =======================================================================
      2. NAVIGATION — sidebar, submenu, active state
      ======================================================================= */
+  
+  const TopbarSearch = {
+    init() {
+      const inputs = document.querySelectorAll('[data-topbar-search]');
+      inputs.forEach(input => {
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            const q = input.value.trim();
+            if (q) {
+              window.location.href = 'transaksi.php?q=' + encodeURIComponent(q);
+            }
+          }
+        });
+      });
+    }
+  };
+  
   const Navigation = {
     init() {
-      this.setupSidebarToggle();
-      this.setupSubmenu();
       this.setupActiveState();
+      this.setupSubmenu();
+      this.setupSidebarToggle();
       this.setupBottomNav();
+      this.setupUserDropdown();
     },
 
     setupSidebarToggle() {
@@ -110,14 +129,29 @@
       toggle.forEach((btn) => {
         btn.addEventListener("click", (e) => {
           e.preventDefault();
-          document.body.classList.toggle("sidebar-open");
+          const isMobile = window.innerWidth <= 1024;
+          if (isMobile) {
+            const isOpen = document.body.classList.toggle("sidebar-open");
+            btn.setAttribute("aria-expanded", String(isOpen));
+          } else {
+            const isCollapsed = document.body.classList.toggle("sidebar-collapsed");
+            btn.setAttribute("aria-expanded", String(!isCollapsed));
+          }
         });
       });
 
       close.forEach((btn) => {
         btn.addEventListener("click", (e) => {
           e.preventDefault();
-          document.body.classList.remove("sidebar-open");
+          const isMobile = window.innerWidth <= 1024;
+          if (isMobile) {
+            document.body.classList.remove("sidebar-open");
+          } else {
+            document.body.classList.add("sidebar-collapsed");
+          }
+          Utils.qsa("[data-sidebar-toggle]").forEach((t) =>
+            t.setAttribute("aria-expanded", "false")
+          );
         });
       });
 
@@ -126,6 +160,9 @@
       if (backdrop) {
         backdrop.addEventListener("click", () => {
           document.body.classList.remove("sidebar-open");
+          Utils.qsa("[data-sidebar-toggle]").forEach((t) =>
+            t.setAttribute("aria-expanded", "false")
+          );
         });
       }
 
@@ -133,7 +170,13 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           document.body.classList.remove("sidebar-open");
-          document.querySelectorAll(".modal.is-open").forEach((m) => m.classList.remove("is-open"));
+          document.body.classList.remove("sidebar-collapsed");
+          Utils.qsa("[data-sidebar-toggle]").forEach((t) =>
+            t.setAttribute("aria-expanded", "false")
+          );
+          document
+            .querySelectorAll(".modal.is-open")
+            .forEach((m) => m.classList.remove("is-open"));
         }
       });
     },
@@ -157,14 +200,22 @@
     },
 
     setupActiveState() {
-      // Fallback: bila markup lupa menandai .is-active, tandai via pathname.
-      const path = window.location.pathname.split("/").pop() || "index.html";
+      // Tentukan file aktif saat ini secara tepat dari pathname
+      const currentPath = window.location.pathname.split("/").pop() || "index.php";
+      const currentBase = currentPath.split("?")[0].split("#")[0].replace(/\.(html|php)$/, "");
+
       Utils.qsa(".nav-item, .nav-subitem, .bottom-nav__item").forEach((link) => {
         const href = link.getAttribute("href");
-        if (href && href.endsWith(path) && !link.classList.contains("is-active")) {
-          // Jangan aktifkan "Semua Transaksi" otomatis bila di halaman form,
-          // kecuali memang tidak ada active.
+        if (!href) return;
+        const linkFile = href.split("?")[0].split("#")[0].split("/").pop();
+        const linkBase = linkFile.replace(/\.(html|php)$/, "");
+
+        if (linkBase && currentBase && linkBase === currentBase) {
           link.classList.add("is-active");
+          link.setAttribute("aria-current", "page");
+        } else {
+          link.classList.remove("is-active");
+          link.removeAttribute("aria-current");
         }
       });
     },
@@ -172,6 +223,48 @@
     setupBottomNav() {
       // FAB "Tambah" tidak perlu status aktif.
       Utils.qsa(".bottom-nav__item--fab").forEach((el) => el.classList.remove("is-active"));
+    },
+
+    setupUserDropdown() {
+      const menus = Utils.qsa("[data-user-menu]");
+      menus.forEach((menuWrapper) => {
+        const btn = menuWrapper.querySelector("[data-user-menu-trigger]");
+        const dropdown = menuWrapper.querySelector("[data-user-menu-dropdown]");
+        if (!btn || !dropdown) return;
+
+        btn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const isOpen = dropdown.classList.toggle("is-open");
+          btn.setAttribute("aria-expanded", String(isOpen));
+        });
+      });
+
+      document.addEventListener("click", (e) => {
+        Utils.qsa("[data-user-menu]").forEach((menuWrapper) => {
+          const btn = menuWrapper.querySelector("[data-user-menu-trigger]");
+          const dropdown = menuWrapper.querySelector("[data-user-menu-dropdown]");
+          if (dropdown && !menuWrapper.contains(e.target)) {
+            dropdown.classList.remove("is-open");
+            if (btn) btn.setAttribute("aria-expanded", "false");
+          }
+        });
+      });
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          Utils.qsa("[data-user-menu]").forEach((menuWrapper) => {
+            const btn = menuWrapper.querySelector("[data-user-menu-trigger]");
+            const dropdown = menuWrapper.querySelector("[data-user-menu-dropdown]");
+            if (dropdown && dropdown.classList.contains("is-open")) {
+              dropdown.classList.remove("is-open");
+              if (btn) {
+                btn.setAttribute("aria-expanded", "false");
+                btn.focus();
+              }
+            }
+          });
+        }
+      });
     },
   };
 
@@ -196,6 +289,18 @@
           btn.addEventListener("click", () => this.closeModal());
         });
       }
+
+      // Tampilkan toast flash dari navigasi (misal setelah simpan transaksi)
+      try {
+        const flash = sessionStorage.getItem("ft_toast");
+        if (flash) {
+          sessionStorage.removeItem("ft_toast");
+          const data = JSON.parse(flash);
+          setTimeout(() => {
+            this.showToast(data.title, data.message || "", data.icon || "check_circle");
+          }, 150);
+        }
+      } catch (err) {}
     },
 
     /**
@@ -269,6 +374,15 @@
 
       this.readRows();
 
+      // Read search param from URL
+      const q = new URLSearchParams(window.location.search).get("q");
+      if (q) {
+        const searchInput = document.querySelector("[data-search]");
+        if (searchInput) {
+          searchInput.value = q;
+        }
+      }
+
       this.perPage = parseInt(
         Utils.qs("[data-per-page]")?.value || "8",
         10
@@ -326,6 +440,7 @@
         clear.addEventListener("click", () => {
           input.value = "";
           clear.classList.remove("is-visible");
+          input.dispatchEvent(new Event("input"));
           this.applyFilters();
           input.focus();
         });
@@ -371,6 +486,16 @@
           cb.checked = selectAll.checked;
         });
       });
+
+      const tbody = Utils.qs("[data-tx-tbody]");
+      if (tbody) {
+        tbody.addEventListener("change", (e) => {
+          if (e.target.classList.contains("row-checkbox")) {
+            const v = this.visibleCheckboxes();
+            selectAll.checked = v.length > 0 && v.every((cb) => cb.checked);
+          }
+        });
+      }
     },
 
     bindRowActions() {
@@ -421,6 +546,11 @@
       if (selectAll) selectAll.checked = false;
 
       this.applyFilters();
+      Feedback.showToast(
+        "Filter direset",
+        "Menampilkan seluruh transaksi.",
+        "restart_alt"
+      );
     },
 
     applyFilters(sortValue) {
@@ -474,14 +604,31 @@
       const pageRows = this.filtered.slice(start, end);
       const pageRowIds = new Set(pageRows.map((r) => r.dataset.id));
 
-      // Tampilkan hanya baris di halaman ini (tabel desktop).
+      // Tampilkan baris tabel desktop sesuai urutan sorting.
+      const tbody = Utils.qs("[data-tx-tbody]");
+      if (tbody) {
+        pageRows.forEach((row) => {
+          row.style.display = "";
+          tbody.appendChild(row);
+        });
+      }
       this.rows.forEach((row) => {
-        row.style.display = pageRowIds.has(row.dataset.id) ? "" : "none";
+        if (!pageRowIds.has(row.dataset.id)) row.style.display = "none";
       });
 
-      // Kartu mobile mengikuti halaman & filter yang sama.
+      // Kartu mobile mengikuti halaman, filter, dan urutan sorting yang sama.
+      const feed = Utils.qs("[data-tx-feed]");
+      if (feed) {
+        pageRows.forEach((r) => {
+          const item = this.feedItems.find((i) => i.dataset.feedId === r.dataset.id);
+          if (item) {
+            item.style.display = "";
+            feed.appendChild(item);
+          }
+        });
+      }
       this.feedItems.forEach((item) => {
-        item.style.display = pageRowIds.has(item.dataset.feedId) ? "" : "none";
+        if (!pageRowIds.has(item.dataset.feedId)) item.style.display = "none";
       });
 
       // Sembunyikan blok pagination bila tidak ada hasil filter.
@@ -491,9 +638,12 @@
       this.updateInfo(start, end, total);
       this.renderPagination(totalPages);
 
-      // Kosongkan checkbox "select all" saat ganti halaman.
+      // Sinkronkan status select all checkbox pada halaman baru.
       const selectAll = Utils.qs("[data-select-all]");
-      if (selectAll) selectAll.checked = false;
+      if (selectAll) {
+        const v = this.visibleCheckboxes();
+        selectAll.checked = v.length > 0 && v.every((cb) => cb.checked);
+      }
     },
 
     updateInfo(start, end, total) {
@@ -585,12 +735,8 @@
     },
 
     handleEdit(id) {
-      // Milestone 2: belum ada storage, jadi arahkan ke form transaksi.
-      Feedback.showToast(
-        "Mode Edit",
-        "Formulir edit akan diisi otomatis pada Milestone 3.",
-        "edit"
-      );
+      const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
+      window.location.href = `form-transaksi${ext}?id=${encodeURIComponent(id)}`;
     },
 
     handleDelete(id) {
@@ -605,13 +751,20 @@
         )} akan dihapus dari daftar. Tindakan ini tidak dapat dibatalkan.`,
         confirmText: "Ya, hapus",
         onConfirm: () => {
-          // Milestone 2: hapus hanya dari tampilan (mock, tanpa storage).
+          if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.deleteTransaction) {
+            FinanceTrackData.deleteTransaction(id);
+          }
           const feedItem = this.feedItems.find((i) => i.dataset.feedId === id);
           if (row) row.remove();
           if (feedItem) feedItem.remove();
 
           this.readRows();
           this.applyFilters();
+
+          const totalEl = Utils.qs("[data-tx-total]");
+          if (totalEl && typeof FinanceTrackData !== "undefined") {
+            totalEl.textContent = FinanceTrackData.transactions.length + " catatan";
+          }
 
           Feedback.showToast(
             "Transaksi dihapus",
@@ -628,25 +781,120 @@
      ======================================================================= */
   const TransactionForm = {
     currentType: "expense",
+    editingId: null,
 
     init() {
       const form = Utils.qs("[data-tx-form]");
       if (!form) return;
 
       this.setupTypeSelector();
-      this.applyTypeFromQuery();
       this.setupAmount();
       this.setupQuickAmounts();
       this.setupLivePreview();
+      this.setupFieldValidationEvents();
+      this.setupUpload();
       this.setupSubmit();
       this.setupCancel();
+
+      const editId = new URLSearchParams(window.location.search).get("id");
+      if (editId) {
+        this.loadTransactionForEdit(editId);
+      } else {
+        this.applyTypeFromQuery();
+      }
+    },
+
+    /**
+     * Memuat data transaksi yang ada untuk diedit.
+     */
+    loadTransactionForEdit(id) {
+      if (typeof FinanceTrackData === "undefined") return;
+      const tx = FinanceTrackData.getTransaction
+        ? FinanceTrackData.getTransaction(id)
+        : null;
+      if (!tx) return;
+
+      this.editingId = tx.id;
+
+      // Set jenis transaksi
+      this.setType(tx.tipe);
+
+      // Isi nilai-nilai form
+      const amountInput = Utils.qs("[data-field-amount]");
+      if (amountInput) amountInput.value = Utils.thousands(tx.jumlah);
+
+      const catSel = Utils.qs("[data-field-category]");
+      if (catSel) catSel.value = tx.kategoriId;
+
+      const methodSel = Utils.qs("[data-field-method]");
+      if (methodSel && methodSel.options.length === 0 && FinanceTrackData.paymentMethods) {
+        methodSel.innerHTML = FinanceTrackData.paymentMethods
+          .map((m) => `<option value="${m.id}">${Utils.escapeHtml(m.nama)}</option>`)
+          .join("");
+      }
+      if (methodSel) methodSel.value = tx.metode;
+
+      const dateInput = Utils.qs("[data-field-date]");
+      if (dateInput) dateInput.value = tx.tanggal;
+
+      const timeInput = Utils.qs("[data-field-time]");
+      if (timeInput) timeInput.value = tx.jam || "";
+
+      const descInput = Utils.qs("[data-field-desc]");
+      if (descInput) descInput.value = tx.deskripsi;
+
+      const notesInput = Utils.qs("#field-notes");
+      if (notesInput && tx.catatan) notesInput.value = tx.catatan;
+
+      if (tx.receipt_path) {
+        const previewBox = Utils.qs("[data-upload-preview]");
+        const previewImg = Utils.qs("[data-upload-preview-img]");
+        const previewName = Utils.qs("[data-upload-preview-name]");
+        const previewSize = Utils.qs("[data-upload-preview-size]");
+        if (previewImg) previewImg.src = "../" + tx.receipt_path;
+        if (previewName) previewName.textContent = "Berkas Tersimpan";
+        if (previewSize) previewSize.textContent = "";
+        if (previewBox) previewBox.classList.remove("is-hidden");
+      }
+
+      // Perbarui judul & tombol untuk mode edit
+      const title = Utils.qs(".page-title");
+      if (title) title.textContent = "Edit Transaksi";
+      const subtitle = Utils.qs(".page-subtitle");
+      if (subtitle) subtitle.textContent = "Perbarui rincian transaksi keuanganmu.";
+      const breadcrumbCur = Utils.qs(".breadcrumb [aria-current='page']");
+      if (breadcrumbCur) breadcrumbCur.textContent = "Edit Transaksi";
+
+      const submitBtn = Utils.qs('button[type="submit"]');
+      if (submitBtn) {
+        submitBtn.innerHTML =
+          '<span class="material-symbols-outlined icon-sm" aria-hidden="true">check_circle</span> Perbarui Transaksi';
+      }
+
+      // Sembunyikan "Simpan & Tambah Lagi" saat edit
+      const saveMoreBtn = Utils.qs("[data-save-more]");
+      if (saveMoreBtn) saveMoreBtn.style.display = "none";
+
+      if (tx.receipt_path) {
+        const previewBox = Utils.qs("[data-upload-preview]");
+        const previewImg = Utils.qs("[data-upload-preview-img]");
+        const previewName = Utils.qs("[data-upload-preview-name]");
+        const previewSize = Utils.qs("[data-upload-preview-size]");
+        if (previewBox && previewImg) {
+          const imgUrl = tx.receipt_path.startsWith("http") ? tx.receipt_path : ("../" + tx.receipt_path.replace(/^\//, ""));
+          previewImg.src = imgUrl;
+          if (previewName) previewName.textContent = "Foto struk tersimpan";
+          if (previewSize) previewSize.textContent = "Tersimpan di server";
+          previewBox.classList.remove("is-hidden");
+        }
+      }
+
+      this.updatePreview();
+      if (catSel) catSel.dispatchEvent(new Event("change"));
     },
 
     /**
      * Dukungan deep-link dari Dashboard: form-transaksi.html?jenis=income
-     * (atau ?jenis=expense). Dijalkan di dalam init — bukan lewat .click() dari
-     * inline script halaman — supaya tidak bergantung pada urutan
-     * registrasi listener DOMContentLoaded.
      */
     applyTypeFromQuery() {
       const requested = new URLSearchParams(window.location.search).get("jenis");
@@ -667,6 +915,9 @@
 
       this.updateCategoryOptions(type);
       this.updatePreview();
+
+      const catSel = Utils.qs("[data-field-category]");
+      if (catSel) catSel.dispatchEvent(new Event("change"));
     },
 
     setupTypeSelector() {
@@ -703,6 +954,7 @@
       input.addEventListener("input", (e) => {
         const digits = e.target.value.replace(/\D/g, "");
         e.target.value = digits ? Utils.thousands(digits) : "";
+        input.closest(".field")?.classList.remove("has-error");
         this.updatePreview();
       });
     },
@@ -715,14 +967,148 @@
           const current = Utils.parseRupiah(input.value);
           const add = parseInt(btn.dataset.quickAmount, 10);
           input.value = Utils.thousands(current + add);
+          input.closest(".field")?.classList.remove("has-error");
           this.updatePreview();
         });
       });
     },
 
+        setupUpload() {
+      const fileInput = Utils.qs("[data-upload-input]");
+      const uploadZone = Utils.qs("[data-upload-zone]");
+      const previewBox = Utils.qs("[data-upload-preview]");
+      const previewImg = Utils.qs("[data-upload-preview-img]");
+      const previewName = Utils.qs("[data-upload-preview-name]");
+      const previewSize = Utils.qs("[data-upload-preview-size]");
+      const removeBtn = Utils.qs("[data-upload-remove]");
+
+      if (!fileInput) return;
+
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+      const allowedExtensions = [".jpg", ".jpeg", ".png", ".webp"];
+      const maxSizeBytes = 5 * 1024 * 1024; // 5MB
+
+      const validateAndHandleFile = (file) => {
+        if (!file) return;
+
+        const fileName = (file.name || "").toLowerCase();
+        const ext = fileName.slice(fileName.lastIndexOf("."));
+
+        // Tolak PDF secara eksplisit
+        if (fileName.endsWith(".pdf") || file.type === "application/pdf") {
+          Feedback.showToast(
+            "Format file tidak didukung",
+            "File PDF tidak diperbolehkan. Harap unggah foto struk berformat JPG, PNG, atau WEBP.",
+            "error"
+          );
+          fileInput.value = "";
+          return false;
+        }
+
+        // Validasi ekstensi dan tipe MIME
+        const isAllowedExt = allowedExtensions.includes(ext);
+        const isAllowedType = allowedTypes.includes(file.type);
+        if (!isAllowedExt && !isAllowedType) {
+          Feedback.showToast(
+            "Format file tidak didukung",
+            "Hanya format JPG, PNG, atau WEBP yang diperbolehkan.",
+            "error"
+          );
+          fileInput.value = "";
+          return false;
+        }
+
+        // Validasi ukuran maksimal 5MB
+        if (file.size > maxSizeBytes) {
+          Feedback.showToast(
+            "Ukuran file terlalu besar",
+            "Ukuran file maksimal 5MB. Silakan pilih foto dengan resolusi lebih kecil.",
+            "error"
+          );
+          fileInput.value = "";
+          return false;
+        }
+
+        // Render preview thumbnail
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          if (previewImg) previewImg.src = e.target.result;
+          if (previewName) previewName.textContent = file.name;
+          if (previewSize) previewSize.textContent = (file.size / 1024).toFixed(0) + " KB";
+          if (previewBox) previewBox.classList.remove("is-hidden");
+        };
+        reader.readAsDataURL(file);
+        return true;
+      };
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+          validateAndHandleFile(file);
+        }
+      });
+
+      if (uploadZone) {
+        uploadZone.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          uploadZone.classList.add("is-dragover");
+        });
+        uploadZone.addEventListener("dragleave", () => {
+          uploadZone.classList.remove("is-dragover");
+        });
+        uploadZone.addEventListener("drop", (e) => {
+          e.preventDefault();
+          uploadZone.classList.remove("is-dragover");
+          const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+          if (file) {
+            try {
+              const dt = new DataTransfer();
+              dt.items.add(file);
+              fileInput.files = dt.files;
+            } catch (err) {}
+            validateAndHandleFile(file);
+          }
+        });
+      }
+
+      if (removeBtn) {
+        removeBtn.addEventListener("click", () => {
+          fileInput.value = "";
+          if (previewImg) previewImg.src = "";
+          if (previewBox) previewBox.classList.add("is-hidden");
+        });
+      }
+    },
+
+    setupFieldValidationEvents() {
+      [
+        "data-field-amount",
+        "data-field-desc",
+        "data-field-category",
+        "data-field-method",
+        "data-field-date",
+      ].forEach((attr) => {
+        const el = Utils.qs(`[${attr}]`);
+        if (el) {
+          el.addEventListener("input", () =>
+            el.closest(".field")?.classList.remove("has-error")
+          );
+          el.addEventListener("change", () =>
+            el.closest(".field")?.classList.remove("has-error")
+          );
+        }
+      });
+    },
+
     setupLivePreview() {
       // Preview diperbarui saat field lain berubah.
-      ["data-field-category", "data-field-date", "data-field-time", "data-field-desc", "data-field-method"]
+      [
+        "data-field-category",
+        "data-field-date",
+        "data-field-time",
+        "data-field-desc",
+        "data-field-method",
+      ]
         .map((sel) => Utils.qs("[" + sel + "]"))
         .filter(Boolean)
         .forEach((el) => {
@@ -787,59 +1173,201 @@
       const form = Utils.qs("[data-tx-form]");
       if (!form) return;
 
-      const save = (addMore) => {
-        const amount = Utils.parseRupiah(Utils.qs("[data-field-amount]")?.value);
-        const desc = (Utils.qs("[data-field-desc]")?.value || "").trim();
+      const resetFormDefaults = () => {
+        form.reset();
+        Utils.qsa(".field.has-error", form).forEach((el) =>
+          el.classList.remove("has-error")
+        );
+        const fileInput = Utils.qs("[data-upload-input]");
+        if (fileInput) fileInput.value = "";
+
+        const now = new Date();
+        const pad = (n) => String(n).padStart(2, "0");
+        const today =
+          now.getFullYear() +
+          "-" +
+          pad(now.getMonth() + 1) +
+          "-" +
+          pad(now.getDate());
+        const dateInput = Utils.qs("[data-field-date]");
+        const timeInput = Utils.qs("[data-field-time]");
+        if (dateInput) dateInput.value = today;
+        if (timeInput)
+          timeInput.value = pad(now.getHours()) + ":" + pad(now.getMinutes());
+
+        const uploadName = Utils.qs("[data-upload-name]");
+        if (uploadName) uploadName.textContent = "Unggah Foto Struk / Nota";
+        const uploadHint = Utils.qs("[data-upload-hint]");
+        if (uploadHint)
+          uploadHint.textContent = "Format JPG, PNG, WEBP (Maks. 5MB)";
+        const uploadPreview = Utils.qs("[data-upload-preview]");
+        if (uploadPreview) uploadPreview.classList.add("is-hidden");
+        const previewImg = Utils.qs("[data-upload-preview-img]");
+        if (previewImg) previewImg.src = "";
+
+        this.updateCategoryOptions(this.currentType);
+        this.updatePreview();
+        const catSel = Utils.qs("[data-field-category]");
+        if (catSel) catSel.dispatchEvent(new Event("change"));
+        if (typeof window.renderBudgetHint === "function") {
+          window.renderBudgetHint();
+        }
+      };
+
+      const save = async (addMore) => {
+        const amountEl = Utils.qs("[data-field-amount]");
+        const descEl = Utils.qs("[data-field-desc]");
+        const catEl = Utils.qs("[data-field-category]");
+        const methodEl = Utils.qs("[data-field-method]");
+        const dateEl = Utils.qs("[data-field-date]");
+        const timeEl = Utils.qs("[data-field-time]");
+        const notesEl = Utils.qs("#field-notes");
+
+        const amount = Utils.parseRupiah(amountEl?.value);
+        const desc = (descEl?.value || "").trim();
+        const catId = catEl?.value || "";
+        const methodId = methodEl?.value || "";
+        const date = dateEl?.value || "";
+        const time = timeEl?.value || "";
+        const notes = (notesEl?.value || "").trim();
 
         let valid = true;
-        const amountField = Utils.qs("[data-field-amount]")?.closest(".field");
-        const descField = Utils.qs("[data-field-desc]")?.closest(".field");
 
         if (!amount || amount <= 0) {
-          amountField?.classList.add("has-error");
+          amountEl?.closest(".field")?.classList.add("has-error");
           valid = false;
         } else {
-          amountField?.classList.remove("has-error");
+          amountEl?.closest(".field")?.classList.remove("has-error");
         }
 
         if (!desc) {
-          descField?.classList.add("has-error");
+          descEl?.closest(".field")?.classList.add("has-error");
           valid = false;
         } else {
-          descField?.classList.remove("has-error");
+          descEl?.closest(".field")?.classList.remove("has-error");
+        }
+
+        if (!catId) {
+          catEl?.closest(".field")?.classList.add("has-error");
+          valid = false;
+        } else {
+          catEl?.closest(".field")?.classList.remove("has-error");
+        }
+
+        if (!methodId) {
+          methodEl?.closest(".field")?.classList.add("has-error");
+          valid = false;
+        } else {
+          methodEl?.closest(".field")?.classList.remove("has-error");
+        }
+
+        if (!date) {
+          dateEl?.closest(".field")?.classList.add("has-error");
+          valid = false;
+        } else {
+          dateEl?.closest(".field")?.classList.remove("has-error");
         }
 
         if (!valid) {
           Feedback.showToast(
             "Form belum lengkap",
-            "Isi nominal dan deskripsi transaksi terlebih dahulu.",
+            "Harap lengkapi semua kolom bertanda bintang (*).",
             "error"
           );
           return;
         }
 
         const isIncome = this.currentType === "income";
+        const fileInput = Utils.qs("[data-upload-input]");
+        const receiptFile = fileInput?.files?.[0] || null;
+
+        const txData = {
+          tanggal: date,
+          jam: time || "12:00",
+          deskripsi: desc,
+          kategoriId: catId,
+          metode: methodId,
+          tipe: this.currentType,
+          jumlah: amount,
+          catatan: notes,
+          receipt_file: receiptFile,
+          receipt_name: receiptFile ? receiptFile.name : "",
+        };
+
+        if (this.editingId) {
+          if (window.FinanceTrackAPI && window.location.protocol.startsWith("http")) {
+            try {
+              const res = await window.FinanceTrackAPI.updateTransaction(this.editingId, txData, receiptFile);
+              if (res && res.data && res.data.struk) {
+                txData.receipt_path = res.data.struk;
+              }
+            } catch (err) {
+              console.warn("Gagal update transaksi via API:", err);
+            }
+          }
+          if (
+            typeof FinanceTrackData !== "undefined" &&
+            FinanceTrackData.updateTransaction
+          ) {
+            FinanceTrackData.updateTransaction(this.editingId, txData);
+          }
+          try {
+            sessionStorage.setItem(
+              "ft_toast",
+              JSON.stringify({
+                title: "Transaksi diperbarui",
+                message: `"${desc}" berhasil diperbarui.`,
+                icon: "check_circle",
+              })
+            );
+          } catch (e) {}
+          const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
+          window.location.href = `transaksi${ext}`;
+          return;
+        }
+
+        // Mode Tambah Transaksi Baru
+        if (window.FinanceTrackAPI && window.location.protocol.startsWith("http")) {
+          try {
+            const apiRes = await window.FinanceTrackAPI.createTransaction(txData, receiptFile);
+            if (apiRes && apiRes.data) {
+              txData.id = apiRes.data.id;
+              if (apiRes.data.struk) {
+                txData.receipt_path = apiRes.data.struk;
+              }
+            }
+          } catch (err) {
+            console.warn("Gagal membuat transaksi via API:", err);
+          }
+        }
+        if (
+          typeof FinanceTrackData !== "undefined" &&
+          FinanceTrackData.addTransaction
+        ) {
+          FinanceTrackData.addTransaction(txData);
+        }
+
         if (addMore) {
           Feedback.showToast(
             "Transaksi tersimpan",
             `${Utils.formatRupiah(amount)} untuk "${desc}" tercatat. Silakan isi transaksi berikutnya.`,
             "check_circle"
           );
+          resetFormDefaults();
+          amountEl?.focus();
         } else {
-          Feedback.showToast(
-            isIncome ? "Pemasukan tersimpan" : "Pengeluaran tersimpan",
-            `${Utils.formatRupiah(amount)} untuk "${desc}" berhasil dicatat.`,
-            "check_circle"
-          );
-        }
-
-        // Reset form (Milestone 2 belum menyimpan ke storage).
-        form.reset();
-        this.updateCategoryOptions(this.currentType);
-        this.updatePreview();
-
-        if (addMore) {
-          Utils.qs("[data-field-amount]")?.focus();
+          try {
+            sessionStorage.setItem(
+              "ft_toast",
+              JSON.stringify({
+                title: isIncome ? "Pemasukan tersimpan" : "Pengeluaran tersimpan",
+                message: `${Utils.formatRupiah(amount)} untuk "${desc}" berhasil dicatat.`,
+                icon: "check_circle",
+              })
+            );
+          } catch (e) {}
+          const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
+          window.location.href = `transaksi${ext}`;
         }
       };
 
@@ -859,17 +1387,53 @@
       if (!cancel) return;
       cancel.addEventListener("click", (e) => {
         e.preventDefault();
+        const isEditing = Boolean(this.editingId);
         Feedback.openModal({
-          title: "Batalkan input?",
-          message:
-            "Data yang sudah kamu isi akan hilang. Yakin ingin membatalkan?",
+          title: isEditing ? "Batalkan perubahan?" : "Batalkan input?",
+          message: isEditing
+            ? "Perubahan yang sudah kamu buat tidak akan disimpan. Yakin ingin membatalkan?"
+            : "Data yang sudah kamu isi akan hilang. Yakin ingin membatalkan?",
           confirmText: "Ya, batalkan",
           confirmClass: "btn--secondary",
           onConfirm: () => {
+            if (isEditing) {
+              const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
+              window.location.href = `transaksi${ext}`;
+              return;
+            }
             const form = Utils.qs("[data-tx-form]");
             if (form) form.reset();
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            const dateInput = Utils.qs("[data-field-date]");
+            const timeInput = Utils.qs("[data-field-time]");
+            if (dateInput)
+              dateInput.value =
+                now.getFullYear() +
+                "-" +
+                pad(now.getMonth() + 1) +
+                "-" +
+                pad(now.getDate());
+            if (timeInput)
+              timeInput.value = pad(now.getHours()) + ":" + pad(now.getMinutes());
+
+            const uploadName = Utils.qs("[data-upload-name]");
+            if (uploadName) uploadName.textContent = "Unggah Foto Struk / Nota";
+            const uploadHint = Utils.qs("[data-upload-hint]");
+            if (uploadHint)
+              uploadHint.textContent = "Format JPG, PNG, WEBP (Maks. 5MB)";
+            const uploadPreview = Utils.qs("[data-upload-preview]");
+            if (uploadPreview) uploadPreview.classList.add("is-hidden");
+            const previewImg = Utils.qs("[data-upload-preview-img]");
+            if (previewImg) previewImg.src = "";
+            const fileInput = Utils.qs("[data-upload-input]");
+            if (fileInput) fileInput.value = "";
+
             this.updateCategoryOptions(this.currentType);
             this.updatePreview();
+            const catSel = Utils.qs("[data-field-category]");
+            if (catSel) catSel.dispatchEvent(new Event("change"));
+
             Feedback.showToast(
               "Form dibatalkan",
               "Semua kolom dikosongkan kembali.",
@@ -976,6 +1540,9 @@
       const ctx = Utils.qs("[data-chart-trend]");
       if (!ctx || typeof FinanceTrackData === "undefined") return;
 
+      const existing = Chart.getChart(ctx);
+      if (existing) existing.destroy();
+
       const t = FinanceTrackData.trend;
       this.chartRefs.trend = new Chart(ctx, {
         type: "line",
@@ -1042,6 +1609,9 @@
     renderExpenseDonut() {
       const ctx = Utils.qs("[data-chart-expense]");
       if (!ctx || typeof FinanceTrackData === "undefined") return;
+
+      const existing = Chart.getChart(ctx);
+      if (existing) existing.destroy();
 
       const items = FinanceTrackData.expenseComposition;
       const total = items.reduce((sum, i) => sum + i.nilai, 0);
@@ -1117,13 +1687,24 @@
       const ctx = Utils.qs("[data-chart-cashflow]");
       if (!ctx || typeof FinanceTrackData === "undefined") return;
 
-      const upto = FinanceTrackData.summary.tanggal;
+      const existing = Chart.getChart(ctx);
+      if (existing) existing.destroy();
+
+      let upto = FinanceTrackData.summary.tanggal || 1;
+      const monthTxDays = FinanceTrackData.transactions
+        .filter((t) => t.tanggal && t.tanggal.startsWith(FinanceTrackData.summary.periodeRaw))
+        .map((t) => parseInt(t.tanggal.split("-")[2], 10))
+        .filter((d) => !isNaN(d));
+      if (monthTxDays.length > 0) {
+        upto = Math.max(upto, ...monthTxDays);
+      }
+
       const labels = [];
       const income = [];
       const expense = [];
 
       for (let day = 1; day <= upto; day++) {
-        const iso = "2024-10-" + String(day).padStart(2, "0");
+        const iso = FinanceTrackData.summary.periodeRaw + "-" + String(day).padStart(2, "0");
         const sameDay = FinanceTrackData.transactions.filter((t) => t.tanggal === iso);
 
         labels.push(String(day));
@@ -1169,7 +1750,7 @@
             tooltip: {
               ...this.getTooltip(),
               callbacks: {
-                title: (items) => "Tanggal " + items[0].label + " Oktober 2024",
+                title: (items) => "Tanggal " + items[0].label + " " + (typeof FinanceTrackData !== 'undefined' ? FinanceTrackData.summary.periode : ""),
                 label: (c) => ` ${c.dataset.label}: ${Utils.formatRupiah(c.parsed.y)}`,
               },
             },
@@ -1194,23 +1775,26 @@
       const ctx = Utils.qs("[data-chart-monthly]");
       if (!ctx || typeof FinanceTrackData === "undefined") return;
 
-      const recap = FinanceTrackData.monthlyRecap.slice().reverse();
+      const existing = Chart.getChart(ctx);
+      if (existing) existing.destroy();
+
+      const labels = FinanceTrackData.trend ? FinanceTrackData.trend.labels : FinanceTrackData.monthlyRecap.map((r) => r.bulan.split(" ")[0].slice(0, 3)).reverse(); const pemasukan = FinanceTrackData.trend ? FinanceTrackData.trend.pemasukan : FinanceTrackData.monthlyRecap.map((r) => r.pemasukan).reverse(); const pengeluaran = FinanceTrackData.trend ? FinanceTrackData.trend.pengeluaran : FinanceTrackData.monthlyRecap.map((r) => r.pengeluaran).reverse();
 
       this.chartRefs.monthly = new Chart(ctx, {
         type: "bar",
         data: {
-          labels: recap.map((r) => r.bulan.split(" ")[0].slice(0, 3)),
+          labels: labels,
           datasets: [
             {
               label: "Pemasukan",
-              data: recap.map((r) => r.pemasukan),
+              data: pemasukan,
               backgroundColor: "#2563eb",
               borderRadius: 4,
               maxBarThickness: 28,
             },
             {
               label: "Pengeluaran",
-              data: recap.map((r) => r.pengeluaran),
+              data: pengeluaran,
               backgroundColor: "rgba(225,29,72,0.75)",
               borderRadius: 4,
               maxBarThickness: 28,
@@ -1244,6 +1828,50 @@
         },
       });
     },
+    updateTrendPeriod(period) {
+      if (!this.chartRefs.trend || typeof FinanceTrackData === "undefined") return;
+      const chart = this.chartRefs.trend;
+      if (period === "30 Hari") {
+        chart.data.labels = ["1-7 Okt", "8-14 Okt", "15-21 Okt", "22-28 Okt"];
+        chart.data.datasets[0].data = [1500000, 1000000, 1200000, 500000];
+        chart.data.datasets[1].data = [450000, 550000, 680000, 470000];
+      } else if (period === "1 Tahun") {
+        chart.data.labels = [
+          "Nov '23",
+          "Des",
+          "Jan '24",
+          "Feb",
+          "Mar",
+          "Apr",
+          "Mei",
+          "Jun",
+          "Jul",
+          "Agu",
+          "Sep",
+          "Okt",
+        ];
+        chart.data.datasets[0].data = [
+          3500000, 4200000, 3600000, 3700000, 3900000, 4000000, 3800000,
+          3900000, 3600000, 4100000, 4900000, 4200000,
+        ];
+        chart.data.datasets[1].data = [
+          2000000, 2600000, 1900000, 2100000, 2300000, 2200000, 2100000,
+          2250000, 1980000, 2400000, 3240000, 2150000,
+        ];
+      } else {
+        // Default: 6 Bulan
+        const t = FinanceTrackData.trend;
+        chart.data.labels = t.labels;
+        chart.data.datasets[0].data = t.pemasukan;
+        chart.data.datasets[1].data = t.pengeluaran;
+      }
+      chart.update();
+      Feedback.showToast(
+        "Periode grafik diperbarui",
+        "Menampilkan tren keuangan " + period + ".",
+        "trending_up"
+      );
+    },
   };
 
   /* =======================================================================
@@ -1256,21 +1884,29 @@
       const value = Utils.qs("[data-balance-value]");
       if (toggle && value) {
         let hidden = false;
-        const real = value.textContent;
         toggle.addEventListener("click", () => {
           hidden = !hidden;
-          value.textContent = hidden ? "Rp ••••••••" : real;
+          if (!value.dataset.realValue) {
+            value.dataset.realValue = value.textContent.trim();
+          }
+          value.textContent = hidden ? "Rp ••••••••" : value.dataset.realValue;
           const icon = Utils.qs(".material-symbols-outlined", toggle);
           if (icon) icon.textContent = hidden ? "visibility_off" : "visibility";
+          toggle.setAttribute(
+            "aria-label",
+            hidden ? "Tampilkan saldo" : "Sembunyikan saldo"
+          );
         });
       }
 
-      // Filter periode chart (visual toggle saja di Milestone 2).
+      // Filter periode chart (30 Hari, 6 Bulan, 1 Tahun)
       const periodBtns = Utils.qsa("[data-chart-period]");
       periodBtns.forEach((btn) => {
         btn.addEventListener("click", () => {
           periodBtns.forEach((b) => b.classList.remove("is-active"));
           btn.classList.add("is-active");
+          const periodText = btn.textContent.trim();
+          Charts.updateTrendPeriod(periodText);
         });
       });
     },
@@ -1295,11 +1931,27 @@
 
   document.addEventListener("DOMContentLoaded", () => {
     Navigation.init();
+    TopbarSearch.init();
     Feedback.init();
     TransactionTable.init();
     TransactionForm.init();
     BudgetUI.init();
     Dashboard.init();
     Charts.init();
+
+    // Sinkronisasi data user dari sesi backend bila aktif
+    if (window.FinanceTrackAPI && window.location.protocol.startsWith("http")) {
+      window.FinanceTrackAPI.getMe().then((res) => {
+        if (res && res.success && res.data && res.data.user) {
+          const u = res.data.user;
+          Utils.qsa("[data-user-name]").forEach((el) => { el.textContent = u.nama; });
+          Utils.qsa("[data-user-avatar]").forEach((el) => {
+            el.textContent = u.avatar_initials || (u.nama ? u.nama.slice(0, 2).toUpperCase() : "FP");
+          });
+          Utils.qsa("[data-user-role]").forEach((el) => { el.textContent = u.role || "Mahasiswa"; });
+          Utils.qsa("[data-user-email]").forEach((el) => { el.textContent = u.email; });
+        }
+      }).catch(function () {});
+    }
   });
 })();

@@ -193,7 +193,6 @@ High-Fidelity UI yang telah dibuat meliputi:
 2. **Dashboard** – ringkasan saldo, pemasukan, pengeluaran, anggaran, grafik, dan transaksi terbaru.
 3. **Data Master / Semua Transaksi** – tabel transaksi, pencarian, filter, ringkasan data, serta aksi edit/hapus.
 
-**Link Figma:** [TEMPATKAN LINK FIGMA DI SINI]
 
 ## UI Wireframe – Google Stitch
 

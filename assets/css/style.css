@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    FinanceTrack â€” Milestone 2
    Unified Design System (refactored from Google Stitch exports)
    --------------------------------------------------------------------------
@@ -37,14 +37,34 @@
   --warning-border: #fde68a;
 
   /* Neutrals */
-  --background: #f8fafc;
+  --background: #f1f5f9;
   --surface: #ffffff;
-  --surface-alt: #f1f5f9;
+  --surface-alt: #e2e8f0;
   --text: #0f172a;
   --text-secondary: #64748b;
   --text-muted: #94a3b8;
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
+
+  /* Glassmorphism Design Tokens */
+  --glass-surface: rgba(255, 255, 255, 0.72);
+  --glass-surface-card: rgba(255, 255, 255, 0.76);
+  --glass-surface-subtle: rgba(255, 255, 255, 0.55);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-border-light: rgba(255, 255, 255, 0.9);
+  --glass-border-subtle: rgba(226, 232, 240, 0.6);
+  --glass-blur: blur(16px);
+  --glass-shadow: 0 8px 32px 0 rgba(15, 23, 42, 0.05), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+
+  /* Z-Index Hierarchy */
+  --z-base: 1;
+  --z-topbar: 100;
+  --z-bottomnav: 100;
+  --z-sidebar: 105;
+  --z-backdrop: 110;
+  --z-modal-backdrop: 1040;
+  --z-modal: 1050;
+  --z-toast: 1100;
 
   /* Typography */
   --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -71,20 +91,20 @@
   --space-2xl: 2.5rem;
 
   --margin-page: 1rem;
-  --gutter: 1rem;
+  --gutter: 1.25rem;
 
   /* Radius */
-  --radius-sm: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
-  --radius-xl: 0.75rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.125rem;
   --radius-full: 9999px;
 
   /* Elevation */
   --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 2px 6px -1px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.03);
+  --shadow-md: 0 6px 16px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+  --shadow-lg: 0 20px 32px -6px rgba(15, 23, 42, 0.08), 0 8px 16px -4px rgba(15, 23, 42, 0.04);
 
   /* Layout metrics */
   --sidebar-width: 260px;
@@ -117,6 +137,14 @@ body {
   line-height: var(--lh-normal);
   color: var(--text);
   background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 6% 0%, rgba(37, 99, 235, 0.12) 0%, transparent 45%),
+    radial-gradient(circle at 94% 4%, rgba(13, 148, 136, 0.11) 0%, transparent 45%),
+    radial-gradient(circle at 50% 50%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 10% 92%, rgba(79, 70, 229, 0.08) 0%, transparent 45%),
+    radial-gradient(circle at 90% 95%, rgba(225, 29, 72, 0.06) 0%, transparent 45%);
+  background-attachment: fixed;
+  min-height: 100vh;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -285,12 +313,15 @@ table {
   position: fixed;
   inset: 0 auto 0 0;
   width: var(--sidebar-width);
-  background-color: var(--surface);
-  border-right: 1px solid var(--border);
+  background: var(--glass-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-right: 1px solid var(--glass-border);
   display: flex;
   flex-direction: column;
-  z-index: 40;
-  transition: transform var(--transition-slow);
+  z-index: var(--z-sidebar);
+  transition: transform var(--transition-slow), width var(--transition-slow);
+  box-shadow: 1px 0 20px rgba(15, 23, 42, 0.03);
 }
 
 .sidebar__brand {
@@ -299,13 +330,64 @@ table {
   gap: var(--space-sm);
   height: var(--header-height);
   padding: 0 var(--space-lg);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
 }
 
 .sidebar__brand img {
   height: 30px;
   width: auto;
+}
+
+.sidebar__close {
+  display: none !important; /* Tersembunyi pada desktop; hanya muncul di drawer mobile */
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  margin-left: auto;
+  transition: all var(--transition-fast);
+}
+
+.sidebar__close:hover {
+  background-color: var(--surface-alt);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  background-color: var(--surface-alt);
+  border-color: var(--border-strong);
+  color: var(--primary);
+}
+
+@media (min-width: 1025px) {
+  body.sidebar-collapsed .sidebar {
+    transform: translateX(-100%);
+  }
+  body.sidebar-collapsed .app {
+    margin-left: 0;
+  }
 }
 
 .sidebar__nav {
@@ -420,6 +502,7 @@ table {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  transition: margin-left var(--transition-slow);
 }
 
 .app__header {
@@ -430,10 +513,12 @@ table {
   align-items: center;
   gap: var(--space-sm);
   padding: 0 var(--margin-page);
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  z-index: 30;
+  background: var(--glass-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+  z-index: var(--z-topbar);
 }
 
 .app__header-title {
@@ -467,11 +552,12 @@ table {
   justify-content: space-between;
   gap: var(--space-lg);
   padding: 0 var(--space-xl);
-  background-color: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  box-shadow: var(--shadow-xs);
-  z-index: 30;
+  background: var(--glass-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.03);
+  z-index: var(--z-topbar);
 }
 .app__topbar .input-group {
   flex: 0 1 384px;
@@ -495,6 +581,62 @@ table {
   height: 8px;
   border-radius: var(--radius-full);
   background-color: var(--danger);
+}
+
+.topbar__user-menu {
+  position: relative;
+}
+
+.topbar-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 220px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.12), 0 8px 10px -6px rgba(15, 23, 42, 0.06);
+  padding: 6px;
+  display: none;
+  flex-direction: column;
+  z-index: calc(var(--z-topbar) + 10);
+}
+
+.topbar-dropdown.is-open {
+  display: flex;
+}
+
+.topbar-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: 8px 12px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background-color var(--transition), color var(--transition);
+}
+
+.topbar-dropdown__item:hover {
+  background-color: var(--surface-alt);
+  color: var(--primary);
+}
+
+.topbar-dropdown__item--danger {
+  color: var(--danger);
+}
+
+.topbar-dropdown__item--danger:hover {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: var(--danger);
+}
+
+.topbar-dropdown__divider {
+  height: 1px;
+  background-color: var(--border);
+  margin: 4px 0;
 }
 
 .app__main {
@@ -522,9 +664,10 @@ table {
 .sidebar-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(2px);
-  z-index: 39;
+  background-color: rgba(15, 23, 42, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: var(--z-backdrop);
   opacity: 0;
   visibility: hidden;
   transition: opacity var(--transition), visibility var(--transition);
@@ -542,10 +685,12 @@ body.sidebar-open .sidebar-backdrop {
   left: 0;
   right: 0;
   height: var(--bottomnav-height);
-  background-color: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(12px);
-  border-top: 1px solid var(--border);
-  z-index: 35;
+  background: var(--glass-surface);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-top: 1px solid var(--glass-border);
+  box-shadow: 0 -4px 20px -2px rgba(15, 23, 42, 0.05);
+  z-index: var(--z-bottomnav);
   padding-bottom: env(safe-area-inset-bottom);
 }
 .bottom-nav__list {
@@ -630,6 +775,13 @@ body.sidebar-open .sidebar-backdrop {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
+  margin-left: 0;
+  margin-right: 0;
+  margin-top: 0;
+  flex-wrap: wrap;
+}
+.row--nowrap {
+  flex-wrap: nowrap;
 }
 .row--between {
   justify-content: space-between;
@@ -644,10 +796,13 @@ body.sidebar-open .sidebar-backdrop {
 
 /* --- Card --- */
 .card {
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
+  background: var(--glass-surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 24px -2px rgba(15, 23, 42, 0.05), inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+  transition: box-shadow var(--transition), transform var(--transition);
 }
 .card--pad {
   padding: var(--space-lg);
@@ -661,7 +816,7 @@ body.sidebar-open .sidebar-backdrop {
   justify-content: space-between;
   gap: var(--space-md);
   padding: var(--space-lg);
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.65);
 }
 .card__header--plain {
   border-bottom: none;
@@ -672,8 +827,10 @@ body.sidebar-open .sidebar-backdrop {
 }
 .card__footer {
   padding: var(--space-md) var(--space-lg);
-  background-color: var(--surface-alt);
-  border-top: 1px solid var(--border);
+  background-color: rgba(241, 245, 249, 0.65);
+  border-top: 1px solid rgba(226, 232, 240, 0.65);
+  border-bottom-left-radius: var(--radius-xl);
+  border-bottom-right-radius: var(--radius-xl);
 }
 
 /* --- Summary / metric card --- */
@@ -683,14 +840,33 @@ body.sidebar-open .sidebar-backdrop {
   justify-content: space-between;
   gap: var(--space-md);
   padding: var(--space-lg);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
-  transition: box-shadow var(--transition);
+  background: var(--glass-surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04), inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+  transition: box-shadow var(--transition), transform var(--transition);
 }
 .summary-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 10px 25px -3px rgba(15, 23, 42, 0.08), inset 0 1px 1px 0 rgba(255, 255, 255, 1);
+  transform: translateY(-1px);
+}
+
+/* Semantic tinted glass variations for metric cards */
+.summary-card:has(.icon-box--primary) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(239, 246, 255, 0.72) 100%);
+  border-color: rgba(191, 219, 254, 0.75);
+}
+.summary-card:has(.icon-box--success),
+.summary-card:has(.text-income) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(240, 253, 250, 0.72) 100%);
+  border-color: rgba(153, 246, 228, 0.75);
+}
+.summary-card:has(.icon-box--danger),
+.summary-card:has(.text-expense) {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 241, 242, 0.72) 100%);
+  border-color: rgba(254, 205, 211, 0.75);
 }
 .summary-card__top {
   display: flex;
@@ -1293,16 +1469,24 @@ body.sidebar-open .sidebar-backdrop {
 /* Proyeksi marker pada progress bar induk (Stitch) */
 .progress-wrap {
   position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+.progress-wrap .progress {
+  width: 100%;
 }
 .progress__marker {
   position: absolute;
   top: 0;
   bottom: 0;
+  height: 100%;
   width: 2px;
   transform: translateX(-1px);
-  background-color: var(--border-strong);
+  background-color: var(--text);
   border-radius: var(--radius-full);
-  z-index: 1;
+  z-index: 2;
+  pointer-events: none;
 }
 
 
@@ -1422,7 +1606,7 @@ body.sidebar-open .sidebar-backdrop {
 .modal {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  z-index: var(--z-modal);
   display: grid;
   place-items: center;
   padding: var(--space-md);
@@ -1485,7 +1669,7 @@ body.sidebar-open .sidebar-backdrop {
   position: fixed;
   bottom: var(--space-lg);
   right: var(--space-lg);
-  z-index: 70;
+  z-index: var(--z-toast);
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -1610,20 +1794,23 @@ body.sidebar-open .sidebar-backdrop {
   gap: var(--space-sm);
   padding: var(--space-md);
   border-radius: var(--radius-lg);
-  background-color: var(--primary-soft);
+  background: linear-gradient(135deg, rgba(239, 246, 255, 0.82) 0%, rgba(241, 245, 249, 0.72) 100%);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
   border: 1px solid var(--primary-border);
+  box-shadow: 0 2px 10px -2px rgba(37, 99, 235, 0.05);
 }
 .callout--success {
-  background-color: var(--success-soft);
+  background: linear-gradient(135deg, rgba(240, 253, 250, 0.82) 0%, rgba(241, 245, 249, 0.72) 100%);
   border-color: var(--success-border);
 }
 .callout--warning {
-  background-color: var(--warning-soft);
+  background: linear-gradient(135deg, rgba(254, 252, 232, 0.82) 0%, rgba(241, 245, 249, 0.72) 100%);
   border-color: var(--warning-border);
 }
 .callout--muted {
-  background-color: var(--surface-alt);
-  border-color: var(--border);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.75) 0%, rgba(241, 245, 249, 0.65) 100%);
+  border-color: var(--glass-border);
 }
 .callout__icon {
   flex-shrink: 0;
@@ -1723,11 +1910,12 @@ body.sidebar-open .sidebar-backdrop {
 .balance-hero {
   position: relative;
   overflow: hidden;
-  padding: var(--space-lg);
-  border-radius: var(--radius-lg);
-  background-color: var(--primary);
+  padding: var(--space-xl);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 60%, #1e40af 100%);
   color: #fff;
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 12px 32px -4px rgba(37, 99, 235, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 .balance-hero__deco {
   position: absolute;
@@ -1855,11 +2043,18 @@ body.sidebar-open .sidebar-backdrop {
   display: flex;
   flex-direction: column;
   gap: var(--space-md);
-  padding: var(--space-md);
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-xs);
+  padding: var(--space-lg);
+  background: var(--glass-surface-card);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.budget-card:hover {
+  box-shadow: 0 8px 24px -2px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 .budget-card__head {
   display: flex;
@@ -1873,6 +2068,7 @@ body.sidebar-open .sidebar-backdrop {
   justify-content: space-between;
   gap: var(--space-sm);
   font-variant-numeric: tabular-nums;
+  flex-wrap: wrap;
 }
 .budget-card__spent {
   font-size: var(--text-xl);
@@ -2318,9 +2514,105 @@ body.sidebar-open .sidebar-backdrop {
   color: var(--text-secondary);
 }
 
-/* Tampilan kartu transaksi (mobile) â€” disembunyikan di desktop,
+/* Tampilan kartu transaksi (mobile) — disembunyikan di desktop,
    muncul hanya di <= 768px lewat media query di bawah. */
 .table--responsive-mobile {
   display: none;
+}
+
+/* Drag & Drop & Upload Preview */
+.upload-zone.is-dragover {
+  border-color: var(--primary) !important;
+  background-color: rgba(30, 58, 138, 0.05) !important;
+}
+
+.upload-preview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-top: var(--space-xs);
+}
+
+.upload-preview__img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.upload-preview__info {
+  flex: 1;
+  min-width: 0;
+}
+
+.upload-preview__name {
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin: 0;
+}
+
+.upload-preview__size {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* Print styles for PDF report export */
+@media print {
+  aside.sidebar,
+  .sidebar-backdrop,
+  .app__topbar,
+  .app__header,
+  .bottom-nav,
+  .toast,
+  .modal,
+  .page-header__actions,
+  .page-header__export-group,
+  .segmented,
+  [data-print],
+  [data-export-csv],
+  [data-export-pdf],
+  #btnExportCsv,
+  #btnExportPdf {
+    display: none !important;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .app {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  .app__main {
+    padding: 0 !important;
+  }
+
+  .card {
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 1.5rem !important;
+  }
+
+  table {
+    width: 100% !important;
+    break-inside: avoid;
+  }
 }
 

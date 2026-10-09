@@ -1,10 +1,34 @@
-﻿<!DOCTYPE html>
+<?php
+require_once __DIR__ . '/../auth/middleware.php';
+require_once __DIR__ . '/../database/bootstrap.php';
+requireAuth();
+$currentUser = getCurrentUser();
+$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
+$userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
+$userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
+$bootstrapData = getDatabaseBootstrapData((int)$currentUser['id']);
+$summary = $bootstrapData['summary'] ?? [
+    'saldo' => 0,
+    'pemasukan' => 0,
+    'pengeluaran' => 0,
+    'sisaAnggaran' => 0,
+    'totalAnggaran' => 3200000,
+    'periode' => 'Oktober ' . date('Y'),
+    'hariDalamBulan' => (int)date('t')
+];
+$expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran'] / $summary['totalAnggaran']) * 100) : 0;
+?>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Kelola anggaran bulanan FinanceTrack — pantau batas pengeluaran per kategori dengan progress bar dan status.">
-  <title>Anggaran · FinanceTrack</title>
+  <meta name="description" content="Dashboard FinanceTrack — ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
+    <title>Anggaran &mdash; FinanceTrack</title>
+  <script>
+    window.__FT_BOOTSTRAP__ = <?= json_encode($bootstrapData, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
+  </script>
 
   <link rel="icon" type="image/svg+xml" href="../assets/img/logo/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +41,7 @@
 </head>
 <body>
 
+  <!-- Sidebar / Off-canvas navigation -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar__brand">
       <img src="../assets/img/logo/logo.svg" alt="FinanceTrack" width="120" height="30">
@@ -24,39 +49,59 @@
         <span class="material-symbols-outlined">close</span>
       </button>
     </div>
+
     <nav class="sidebar__nav" aria-label="Navigasi utama">
       <p class="sidebar__label">Menu</p>
       <ul>
-        <li><a class="nav-item" href="dashboard.html">
-          <span class="material-symbols-outlined" aria-hidden="true">grid_view</span> Dashboard
-        </a></li>
         <li>
-          <button type="button" class="nav-item" data-submenu-trigger aria-expanded="false" aria-controls="submenu-transaksi" style="width:100%">
-            <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Transaksi
-            <span class="material-symbols-outlined icon-xs" aria-hidden="true" style="margin-left:auto">expand_more</span>
+          <a class="nav-item" href="dashboard.php">
+            <span class="material-symbols-outlined" aria-hidden="true">grid_view</span>
+            Dashboard
+          </a>
+        </li>
+        <li>
+          <button type="button" class="nav-item" data-submenu-trigger aria-expanded="false" aria-controls="submenu-transaksi"
+                  style="width:100%">
+            <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span>Transaksi<span class="material-symbols-outlined icon-xs" aria-hidden="true" style="margin-left:auto">expand_more</span>
           </button>
           <ul class="nav-sublist" id="submenu-transaksi">
-            <li><a class="nav-subitem" href="transaksi.html">Semua Transaksi</a></li>
-            <li><a class="nav-subitem" href="form-transaksi.html">Tambah Transaksi</a></li>
+            <li><a class="nav-subitem" href="transaksi.php">Semua Transaksi</a></li>
+            <li><a class="nav-subitem" href="form-transaksi.php">Tambah Transaksi</a></li>
           </ul>
         </li>
-        <li><a class="nav-item is-active" href="anggaran.html" aria-current="page">
-          <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span> Anggaran
-        </a></li>
-        <li><a class="nav-item" href="laporan.html">
-          <span class="material-symbols-outlined" aria-hidden="true">monitoring</span> Laporan
-        </a></li>
-        <li><a class="nav-item" href="pengaturan.html">
-          <span class="material-symbols-outlined" aria-hidden="true">settings</span> Pengaturan
-        </a></li>
+        <li>
+          <a class="nav-item" href="anggaran.php">
+            <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
+            Anggaran
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="laporan.php">
+            <span class="material-symbols-outlined" aria-hidden="true">monitoring</span>
+            Laporan
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="pengaturan.php">
+            <span class="material-symbols-outlined" aria-hidden="true">settings</span>
+            Pengaturan
+          </a>
+        </li>
       </ul>
+
+
+
+
+
+
     </nav>
+
     <div class="sidebar__footer">
       <div class="sidebar__user">
-        <span class="sidebar__avatar" aria-hidden="true">FP</span>
+        <span class="sidebar__avatar" aria-hidden="true"><?= $userAvatar ?></span>
         <div>
-          <p class="sidebar__user-name">Fikri Juana</p>
-          <p class="sidebar__user-role">Mahasiswa</p>
+          <p class="sidebar__user-name"><?= $userName ?></p>
+          <p class="sidebar__user-role"><?= $userRole ?></p>
         </div>
       </div>
     </div>
@@ -64,14 +109,57 @@
 
   <div class="sidebar-backdrop" data-sidebar-close></div>
 
+  <!-- Content area -->
   <div class="app">
+
+    <!-- Desktop top bar (Stitch: pencarian, notifikasi, profil) -->
+    <header class="app__topbar">
+      <div class="row align-items-center" style="gap:var(--space-md);flex:0 1 450px">
+        <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka/Tutup menu" aria-controls="sidebar">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <form class="input-group" action="transaksi.php" method="GET" style="flex:1; background-color: var(--surface-container-low); border-radius: 999px; padding: 4px 16px; border: 1px solid var(--surface-container);">
+          <span class="material-symbols-outlined" aria-hidden="true" style="color: var(--secondary);">search</span>
+          <input type="text" class="input" name="q" autocomplete="off"
+                 aria-label="Cari mutasi, kategori, nominal"
+                 placeholder="Cari mutasi, kategori, nominal..."
+                 style="background: transparent; border: none; outline: none; box-shadow: none; width: 100%; color: var(--on-surface);">
+        </form>
+      </div>
+      <div class="row" style="gap:var(--space-md); align-items: center;">
+        <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative;height:40px;width:40px;display:flex;align-items:center;justify-content:center;">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          <span class="topbar__dot" aria-hidden="true"></span>
+        </button>
+        <div class="topbar__user-menu" data-user-menu style="position:relative;">
+          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:40px;box-sizing:border-box;margin:0;">
+            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:32px;height:32px;font-size:12px;"><?= $userAvatar ?></span>
+            <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
+          </button>
+          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:8px;background:var(--surface-container-lowest);border:1px solid var(--surface-container);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:200px;z-index:100;">
+            <a href="pengaturan.php" class="topbar-dropdown__item" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--on-surface);text-decoration:none;">
+              <span class="material-symbols-outlined icon-sm" aria-hidden="true">person</span>
+              <span>Profil / Pengaturan</span>
+            </a>
+            <div style="height:1px;background:var(--surface-container);"></div>
+            <a href="../auth/logout.php" class="topbar-dropdown__item topbar-dropdown__item--danger" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--danger);text-decoration:none;">
+              <span class="material-symbols-outlined icon-sm" aria-hidden="true">logout</span>
+              <span>Keluar</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Mobile header -->
     <header class="app__header">
       <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
         <span class="material-symbols-outlined">menu</span>
       </button>
       <div class="app__header-title">
         <span class="app__header-brand">FinanceTrack</span>
-        <span class="app__header-name">Anggaran</span>
+        <span class="app__header-name">Dashboard</span>
       </div>
     </header>
 
@@ -86,15 +174,15 @@
           <h1 class="page-title">Manajemen Anggaran</h1>
           <p class="page-subtitle">Tetapkan batas pengeluaran bulanan per kategori dan pantau pemakaiannya secara berkala.</p>
         </div>
-        <div class="page-header__actions">
+        <div class="page-header__actions" style="margin-bottom: var(--space-md);">
           <div class="row" style="padding:0.5rem var(--space-md);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-md);box-shadow:var(--shadow-xs)">
             <span class="material-symbols-outlined icon-sm text-muted" aria-hidden="true">calendar_today</span>
             <label class="visually-hidden" for="budget-period">Periode anggaran</label>
             <select class="select" id="budget-period" data-budget-period
                     style="width:auto;min-height:0;height:auto;padding:0 1.5rem 0 0;background:transparent;border:0;box-shadow:none;font-size:var(--text-sm);font-weight:500">
-              <option selected value="2024-10">Oktober 2024</option>
-              <option value="2024-09">September 2024</option>
-              <option value="2024-08">Agustus 2024</option>
+              <?php $bulanIndo = [1=>'Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']; for ($i = 0; $i < 3; $i++) { $ts = strtotime("-$i month"); $val = date('Y-m', $ts); $label = $bulanIndo[(int)date('n', $ts)] . ' ' . date('Y', $ts); $sel = ($i === 0) ? ' selected' : ''; echo "<option value=\"$val\"$sel>$label</option>\n              "; } ?>
+              
+              
             </select>
           </div>
           <button type="button" class="btn btn--primary" data-budget-new>
@@ -113,7 +201,7 @@
               Status: Terkendali
             </span>
             <p class="summary-card__label" id="total-anggaran-heading" style="margin-top:var(--space-sm)">Total Terpakai Bulan Ini</p>
-            <div class="row" style="align-items:baseline;gap:var(--space-sm);flex-wrap:wrap">
+            <div class="row" style="align-items:baseline;gap:var(--space-sm);flex-wrap:wrap" data-budget-total-text>
               <span class="numeric" style="font-size:var(--text-4xl);font-weight:700;letter-spacing:-0.025em">Rp 2.150.000</span>
               <span class="text-secondary">/ Rp 3.200.000</span>
             </div>
@@ -126,17 +214,17 @@
           <div class="grid grid--3" style="flex:1;min-width:280px">
             <div class="mini-stat">
               <span class="mini-stat__label">Alokasi Terpakai</span>
-              <span class="mini-stat__value" style="color:var(--primary)">67,2%</span>
-              <span class="text-secondary numeric" style="font-size:var(--text-xs)">Rp 2.150.000</span>
+              <span class="mini-stat__value" style="color:var(--primary)" data-budget-alloc-pct>67,2%</span>
+              <span class="text-secondary numeric" style="font-size:var(--text-xs)" data-budget-alloc-spent>Rp 2.150.000</span>
             </div>
             <div class="mini-stat">
               <span class="mini-stat__label">Sisa Anggaran</span>
-              <span class="mini-stat__value text-income">32,8%</span>
-              <span class="text-secondary numeric" style="font-size:var(--text-xs)">Rp 1.050.000</span>
+              <span class="mini-stat__value text-income" data-budget-remain-pct>32,8%</span>
+              <span class="text-secondary numeric" style="font-size:var(--text-xs)" data-budget-remain-val>Rp 1.050.000</span>
             </div>
             <div class="mini-stat">
               <span class="mini-stat__label">Plafon Harian Aman</span>
-              <span class="mini-stat__value">Rp 150.000</span>
+              <span class="mini-stat__value" data-budget-daily-limit>Rp 150.000</span>
               <span class="text-secondary numeric" style="font-size:var(--text-xs)">per hari (sisa 7 hari)</span>
             </div>
           </div>
@@ -147,16 +235,16 @@
           <div class="row row--between row--wrap" style="font-size:var(--text-xs);color:var(--text-secondary);margin-bottom:var(--space-sm)">
             <span class="row" style="gap:var(--space-xs)">
               <span style="width:12px;height:12px;border-radius:3px;background:var(--primary);display:inline-block"></span>
-              Realisasi Pengeluaran (67,2%)
+              <span data-budget-master-label>Realisasi Pengeluaran (67,2%)</span>
             </span>
             <span class="row" style="gap:var(--space-xs)">
               <span style="width:12px;height:12px;border-radius:3px;background:var(--border-strong);display:inline-block"></span>
-              Kapasitas Tersedia: Rp 1.050.000
+              <span data-budget-master-cap>Kapasitas Tersedia: Rp 1.050.000</span>
             </span>
           </div>
           <div class="progress-wrap">
             <div class="progress progress--thick">
-              <div class="progress__bar" style="width:67.2%"></div>
+              <div class="progress__bar" style="width:67.2%" data-budget-master-bar></div>
             </div>
             <span class="progress__marker" style="left:77.4%" title="Target Waktu Ideal (77.4%)"></span>
           </div>
@@ -262,19 +350,19 @@
 
   <nav class="bottom-nav" aria-label="Navigasi bawah">
     <ul class="bottom-nav__list">
-      <li><a class="bottom-nav__item" href="dashboard.html">
+      <li><a class="bottom-nav__item" href="dashboard.php">
         <span class="material-symbols-outlined" aria-hidden="true">space_dashboard</span> Beranda
       </a></li>
-      <li><a class="bottom-nav__item" href="transaksi.html">
+      <li><a class="bottom-nav__item" href="transaksi.php">
         <span class="material-symbols-outlined" aria-hidden="true">receipt_long</span> Transaksi
       </a></li>
-      <li><a class="bottom-nav__item bottom-nav__item--fab" href="form-transaksi.html" aria-label="Tambah Transaksi">
+      <li><a class="bottom-nav__item bottom-nav__item--fab" href="form-transaksi.php" aria-label="Tambah Transaksi">
         <span class="material-symbols-outlined" aria-hidden="true">add</span>
       </a></li>
-      <li><a class="bottom-nav__item is-active" href="anggaran.html" aria-current="page">
+      <li><a class="bottom-nav__item is-active" href="anggaran.php" aria-current="page">
         <span class="material-symbols-outlined" aria-hidden="true">account_balance_wallet</span> Anggaran
       </a></li>
-      <li><a class="bottom-nav__item" href="laporan.html">
+      <li><a class="bottom-nav__item" href="laporan.php">
         <span class="material-symbols-outlined" aria-hidden="true">bar_chart</span> Laporan
       </a></li>
     </ul>
@@ -290,6 +378,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/api.js"></script>
   <script src="../assets/js/script.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -378,7 +467,7 @@
                 '<span class="material-symbols-outlined icon-xs" aria-hidden="true">' + status.icon + '</span>' +
                 esc(status.text) +
               '</span>' +
-              '<a class="budget-card__link" href="transaksi.html">Rincian' +
+              '<a class="budget-card__link" href="transaksi.php">Rincian' +
                 '<span class="material-symbols-outlined icon-xs" aria-hidden="true">chevron_right</span>' +
               '</a>' +
             '</div>' +
@@ -387,6 +476,48 @@
 
         /* Warnai progress bar via BudgetUI */
         FinanceTrack.BudgetUI.init();
+
+        /* Sinkronkan banner ringkasan total anggaran */
+        updateSummaryBanner();
+      }
+
+      function updateSummaryBanner() {
+        var totalLimit = D.budgets.reduce(function (s, b) { return s + b.batas; }, 0);
+        var totalSpent = D.budgets.reduce(function (s, b) { return s + b.terpakai; }, 0);
+        var sisa = totalLimit - totalSpent;
+        var pct = U.percent(totalSpent, totalLimit);
+
+        var spentLimitEl = document.querySelector("[data-budget-total-text]");
+        if (spentLimitEl) {
+          spentLimitEl.innerHTML =
+            '<span class="numeric" style="font-size:var(--text-4xl);font-weight:700;letter-spacing:-0.025em">' +
+            esc(U.formatRupiah(totalSpent)) + "</span>" +
+            ' <span class="text-secondary">/ ' + esc(U.formatRupiah(totalLimit)) + "</span>";
+        }
+
+        var allocPctEl = document.querySelector("[data-budget-alloc-pct]");
+        if (allocPctEl) allocPctEl.textContent = pct.toFixed(1) + "%";
+
+        var allocSpentEl = document.querySelector("[data-budget-alloc-spent]");
+        if (allocSpentEl) allocSpentEl.textContent = U.formatRupiah(totalSpent);
+
+        var remainPctEl = document.querySelector("[data-budget-remain-pct]");
+        if (remainPctEl) remainPctEl.textContent = Math.max(0, 100 - pct).toFixed(1) + "%";
+
+        var remainValEl = document.querySelector("[data-budget-remain-val]");
+        if (remainValEl) remainValEl.textContent = (sisa < 0 ? "-" : "") + U.formatRupiah(Math.abs(sisa));
+
+        var barEl = document.querySelector("[data-budget-master-bar]");
+        if (barEl) {
+          barEl.style.width = Math.min(pct, 100) + "%";
+          barEl.className = "progress__bar " + (pct >= 100 ? "progress__bar--danger" : pct >= 80 ? "progress__bar--warning" : "progress__bar--success");
+        }
+
+        var labelEl = document.querySelector("[data-budget-master-label]");
+        if (labelEl) labelEl.textContent = "Realisasi Pengeluaran (" + pct.toFixed(1) + "%)";
+
+        var capEl = document.querySelector("[data-budget-master-cap]");
+        if (capEl) capEl.textContent = "Kapasitas Tersedia: " + U.formatRupiah(Math.max(0, sisa));
       }
 
       renderCards();
@@ -453,14 +584,54 @@
           return;
         }
 
+        if (typeof D.setBudget === "function") {
+          D.setBudget(catSel.value, value);
+        } else {
+          var b = D.budgets.find(function (x) { return x.kategoriId === catSel.value; });
+          if (b) {
+            b.batas = value;
+          } else {
+            D.budgets.push({
+              kategoriId: catSel.value,
+              batas: value,
+              terpakai: 0,
+              icon: cat ? cat.icon : "category",
+              catatan: cat ? cat.nama : "",
+            });
+          }
+        }
+
+        renderCards();
+
         FinanceTrack.Feedback.showToast(
           "Anggaran diperbarui",
-          "Batas " + cat.nama + " ditetapkan " + U.formatRupiah(value) + " per bulan.",
+          "Batas " + (cat ? cat.nama : "kategori") + " ditetapkan " + U.formatRupiah(value) + " per bulan.",
           "check_circle"
         );
       });
     });
   </script>
 
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const userMenuBtn = document.querySelector('[data-user-menu-trigger]');
+    const userMenuDropdown = document.querySelector('[data-user-menu-dropdown]');
+    if (userMenuBtn && userMenuDropdown) {
+      userMenuBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isExpanded = userMenuBtn.getAttribute('aria-expanded') === 'true';
+        userMenuBtn.setAttribute('aria-expanded', !isExpanded);
+        userMenuDropdown.style.display = isExpanded ? 'none' : 'block';
+      });
+      document.addEventListener('click', (e) => {
+        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
+          userMenuBtn.setAttribute('aria-expanded', 'false');
+          userMenuDropdown.style.display = 'none';
+        }
+      });
+    }
+  });
+</script>
 </body>
 </html>
+

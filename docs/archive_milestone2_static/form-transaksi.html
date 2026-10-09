@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
   <meta charset="UTF-8">
@@ -65,6 +65,36 @@
   <div class="sidebar-backdrop" data-sidebar-close></div>
 
   <div class="app">
+    <!-- Desktop top bar -->
+    <header class="app__topbar">
+      <div class="row align-items-center" style="gap:var(--space-md);flex:0 1 450px">
+        <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka/Tutup menu" aria-controls="sidebar">
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+        <div class="input-group" style="flex:1">
+          <span class="material-symbols-outlined" aria-hidden="true">search</span>
+          <input type="text" class="input" autocomplete="off"
+                 aria-label="Cari mutasi, kategori, nominal"
+                 placeholder="Cari mutasi, kategori, nominal..."
+                 data-topbar-search>
+        </div>
+      </div>
+      <div class="row" style="gap:var(--space-md);align-items:center">
+        <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative">
+          <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
+          <span class="topbar__dot" aria-hidden="true"></span>
+        </button>
+        <a class="sidebar__user" href="pengaturan.html" style="text-decoration:none;color:inherit">
+          <span class="sidebar__avatar" aria-hidden="true" data-user-avatar>FP</span>
+          <div>
+            <div class="sidebar__user-name" data-user-name>Fikri Juana</div>
+            <div class="sidebar__user-role" data-user-role>Mahasiswa</div>
+          </div>
+          <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
+        </a>
+      </div>
+    </header>
+
     <header class="app__header">
       <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
         <span class="material-symbols-outlined">menu</span>
@@ -140,10 +170,12 @@
                 <div class="field">
                   <label class="field__label" for="field-category">Kategori <span class="field__required">*</span></label>
                   <select class="select" id="field-category" data-field-category></select>
+                  <p class="field__error">Kategori transaksi wajib dipilih.</p>
                 </div>
                 <div class="field">
                   <label class="field__label" for="field-method">Metode Pembayaran <span class="field__required">*</span></label>
                   <select class="select" id="field-method" data-field-method></select>
+                  <p class="field__error">Metode pembayaran wajib dipilih.</p>
                 </div>
               </div>
 
@@ -162,6 +194,7 @@
                     <input type="time" class="input" id="field-time" data-field-time>
                   </div>
                 </div>
+                <p class="field__error">Tanggal transaksi wajib diisi.</p>
               </div>
 
               <!-- Deskripsi -->
@@ -185,18 +218,30 @@
               <!-- Foto bukti / struk -->
               <div class="field">
                 <span class="field__label">Foto Bukti / Struk (Opsional)</span>
-                <label class="callout callout--muted upload-zone" for="field-photo">
+                <label class="callout callout--muted upload-zone" for="field-photo" data-upload-zone>
                   <span class="icon-box icon-box--primary" aria-hidden="true">
                     <span class="material-symbols-outlined icon-sm">add_photo_alternate</span>
                   </span>
                   <span class="upload-zone__body">
                     <span class="callout__title" data-upload-name>Unggah Foto Struk / Nota</span>
-                    <span class="callout__text" data-upload-hint>Format PNG atau JPG (Maks. 5MB)</span>
+                    <span class="callout__text" data-upload-hint>Format JPG, PNG, WEBP (Maks. 5MB)</span>
                   </span>
                   <span class="upload-zone__link">Pilih File</span>
                 </label>
                 <input type="file" class="visually-hidden" id="field-photo"
-                       accept="image/*" data-upload-input>
+                       accept="image/png, image/jpeg, image/jpg, image/webp" data-upload-input>
+
+                <!-- Preview thumbnail & hapus foto -->
+                <div class="upload-preview is-hidden" id="uploadPreview" data-upload-preview>
+                  <img src="" alt="Preview struk" id="uploadPreviewImg" class="upload-preview__img" data-upload-preview-img>
+                  <div class="upload-preview__info">
+                    <p class="upload-preview__name" data-upload-preview-name>struk.jpg</p>
+                    <p class="upload-preview__size text-secondary" data-upload-preview-size>120 KB</p>
+                  </div>
+                  <button type="button" class="btn btn--ghost btn--icon btn--sm text-danger" id="btnRemoveReceipt" data-upload-remove aria-label="Hapus foto struk" title="Hapus foto">
+                    <span class="material-symbols-outlined icon-sm">delete</span>
+                  </button>
+                </div>
               </div>
 
               <!-- Aksi -->
@@ -321,6 +366,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
+  <script src="../assets/js/api.js"></script>
   <script src="../assets/js/script.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -344,25 +390,118 @@
       document.querySelector("[data-field-date]").value = today;
       document.querySelector("[data-field-time]").value = pad(now.getHours()) + ":" + pad(now.getMinutes());
 
-      /* --- Unggah foto struk (pratinjau nama file saja, belum disimpan) --- */
+      /* --- Unggah foto struk (validasi format & ukuran + preview thumbnail & hapus) --- */
       var fileInput = document.querySelector("[data-upload-input]");
-      if (fileInput) {
-        var resetUploadLabel = function () {
-          document.querySelector("[data-upload-name]").textContent = "Unggah Foto Struk / Nota";
-          document.querySelector("[data-upload-hint]").textContent = "Format PNG atau JPG (Maks. 5MB)";
+      var uploadZone = document.querySelector("[data-upload-zone]");
+      var previewBox = document.querySelector("[data-upload-preview]");
+      var previewImg = document.querySelector("[data-upload-preview-img]");
+      var previewName = document.querySelector("[data-upload-preview-name]");
+      var previewSize = document.querySelector("[data-upload-preview-size]");
+      var removeBtn = document.querySelector("[data-upload-remove]");
+
+      var allowedTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg"];
+
+      var resetUpload = function () {
+        if (fileInput) fileInput.value = "";
+        var nameEl = document.querySelector("[data-upload-name]");
+        var hintEl = document.querySelector("[data-upload-hint]");
+        if (nameEl) nameEl.textContent = "Unggah Foto Struk / Nota";
+        if (hintEl) hintEl.textContent = "Format JPG, PNG, WEBP (Maks. 5MB)";
+        if (previewBox) previewBox.classList.add("is-hidden");
+        if (previewImg) previewImg.src = "";
+      };
+
+      if (removeBtn) {
+        removeBtn.addEventListener("click", function (e) {
+          e.preventDefault();
+          resetUpload();
+          FinanceTrack.Feedback.showToast(
+            "Foto dihapus",
+            "Bukti foto struk telah dibatalkan.",
+            "delete"
+          );
+        });
+      }
+
+      var handleFile = function (f) {
+        if (!f) {
+          resetUpload();
+          return;
+        }
+        var ext = (f.name.split(".").pop() || "").toLowerCase();
+        var isImage = allowedTypes.indexOf(f.type) !== -1 || ["jpg", "jpeg", "png", "webp"].indexOf(ext) !== -1;
+
+        if (!isImage) {
+          FinanceTrack.Feedback.showToast(
+            "Format tidak didukung",
+            'File "' + f.name + '" ditolak. Hanya format JPG, PNG, atau WEBP yang diizinkan (bukan PDF/dokumen lain).',
+            "error"
+          );
+          resetUpload();
+          return;
+        }
+
+        if (f.size > 5 * 1024 * 1024) {
+          FinanceTrack.Feedback.showToast(
+            "Ukuran melebihi batas",
+            'File "' + f.name + '" berukuran ' + (f.size / (1024 * 1024)).toFixed(2) + " MB (maksimal 5 MB).",
+            "error"
+          );
+          resetUpload();
+          return;
+        }
+
+        var reader = new FileReader();
+        reader.onload = function (ev) {
+          if (previewImg) previewImg.src = ev.target.result;
+          if (previewName) previewName.textContent = f.name;
+          if (previewSize) previewSize.textContent = (f.size / 1024).toFixed(0) + " KB";
+          if (previewBox) previewBox.classList.remove("is-hidden");
+          var nameEl = document.querySelector("[data-upload-name]");
+          var hintEl = document.querySelector("[data-upload-hint]");
+          if (nameEl) nameEl.textContent = f.name;
+          if (hintEl) hintEl.textContent = "Foto siap disimpan bersama transaksi";
         };
+        reader.readAsDataURL(f);
+      };
+
+      if (fileInput) {
         fileInput.addEventListener("change", function () {
           var f = fileInput.files && fileInput.files[0];
-          if (!f) {
-            resetUploadLabel();
-            return;
-          }
-          document.querySelector("[data-upload-name]").textContent = f.name;
-          document.querySelector("[data-upload-hint]").textContent =
-            (f.size / 1024 / 1024).toFixed(2) + " MB · siap diunggah";
+          handleFile(f);
         });
+
         var txForm = document.querySelector("[data-tx-form]");
-        if (txForm) txForm.addEventListener("reset", resetUploadLabel);
+        if (txForm) txForm.addEventListener("reset", resetUpload);
+
+        if (uploadZone) {
+          uploadZone.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInput.click();
+            }
+          });
+          ["dragenter", "dragover"].forEach(function (ev) {
+            uploadZone.addEventListener(ev, function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              uploadZone.classList.add("is-dragover");
+            });
+          });
+          ["dragleave", "drop"].forEach(function (ev) {
+            uploadZone.addEventListener(ev, function (e) {
+              e.preventDefault();
+              e.stopPropagation();
+              uploadZone.classList.remove("is-dragover");
+            });
+          });
+          uploadZone.addEventListener("drop", function (e) {
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+              fileInput.files = e.dataTransfer.files;
+              handleFile(e.dataTransfer.files[0]);
+            }
+          });
+        }
       }
 
       /* --- Isi dropdown kategori sesuai mode aktif (default: expense) ---
@@ -375,7 +514,19 @@
       /* --- Batas anggaran untuk kategori terpilih --- */
       function renderBudgetHint() {
         var box = document.getElementById("budget-hint");
-        var catId = document.querySelector("[data-field-category]").value;
+        if (!box) return;
+        var catSel = document.querySelector("[data-field-category]");
+        var catId = catSel ? catSel.value : "";
+        var amountInput = document.querySelector("[data-field-amount]");
+        var currentAmount = amountInput ? U.parseRupiah(amountInput.value) : 0;
+        var isIncome = T.currentType === "income";
+
+        if (isIncome) {
+          box.innerHTML =
+            '<p class="text-secondary" style="font-size:var(--text-sm)">Kategori pemasukan tidak memiliki batas anggaran pengeluaran.</p>';
+          return;
+        }
+
         var budget = D.budgets.find(function (b) { return b.kategoriId === catId; });
 
         if (!budget) {
@@ -386,30 +537,53 @@
         }
 
         var cat = D.getCategory(catId);
-        var pct = U.percent(budget.terpakai, budget.batas);
-        var sisa = budget.batas - budget.terpakai;
+        var catName = cat ? cat.nama : catId;
+        var totalWithNew = budget.terpakai + currentAmount;
+        var pct = U.percent(totalWithNew, budget.batas);
+        var sisa = budget.batas - totalWithNew;
         var barClass = pct >= 100 ? "progress__bar--danger"
                      : pct >= 80 ? "progress__bar--warning"
                      : "progress__bar--success";
-        var textClass = pct >= 80 ? "text-expense" : "text-income";
+        var textClass = sisa < 0 ? "text-expense" : pct >= 80 ? "text-warning" : "text-income";
 
         box.innerHTML =
           '<p class="text-secondary" style="font-size:var(--text-sm);margin:0 0 var(--space-sm)">' +
-            'Kategori: <strong style="color:var(--text)">' + esc(cat.nama) + '</strong>' +
+            'Kategori: <strong style="color:var(--text)">' + esc(catName) + '</strong>' +
           '</p>' +
           '<div class="row row--between" style="font-size:var(--text-xs);color:var(--text-secondary);margin-bottom:var(--space-xs)">' +
-            '<span>Terpakai: ' + esc(U.formatRupiah(budget.terpakai)) + '</span>' +
+            '<span>Terpakai saat ini: ' + esc(U.formatRupiah(budget.terpakai)) + '</span>' +
             '<span style="color:var(--text);font-weight:600">Batas: ' + esc(U.formatRupiah(budget.batas)) + '</span>' +
           '</div>' +
-          '<div class="progress"><div class="progress__bar ' + barClass + '" style="width:' + pct + '%"></div></div>' +
+          '<div class="progress"><div class="progress__bar ' + barClass + '" style="width:' + Math.min(pct, 100) + '%"></div></div>' +
           '<div class="row row--between" style="margin-top:var(--space-sm);font-size:var(--text-xs);color:var(--text-secondary)">' +
-            '<span>Sisa anggaran</span>' +
-            '<strong class="' + textClass + ' numeric">' + esc(U.formatRupiah(sisa)) + '</strong>' +
-          '</div>';
+            '<span>' + (currentAmount > 0 ? "Sisa setelah transaksi" : "Sisa anggaran") + '</span>' +
+            '<strong class="' + textClass + ' numeric">' + (sisa < 0 ? "Lebih " : "") + esc(U.formatRupiah(Math.abs(sisa))) + '</strong>' +
+          '</div>' +
+          (currentAmount > 0 && sisa < 0
+            ? '<p class="field__error" style="display:block;margin-top:var(--space-xs);font-size:var(--text-xs)">Peringatan: Nominal ini melebihi sisa anggaran!</p>'
+            : "");
       }
 
+      window.renderBudgetHint = renderBudgetHint;
       renderBudgetHint();
-      document.querySelector("[data-field-category]").addEventListener("change", renderBudgetHint);
+
+      var catField = document.querySelector("[data-field-category]");
+      if (catField) catField.addEventListener("change", renderBudgetHint);
+
+      var amountField = document.querySelector("[data-field-amount]");
+      if (amountField) amountField.addEventListener("input", renderBudgetHint);
+
+      document.querySelectorAll("[data-quick-amount]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          setTimeout(renderBudgetHint, 0);
+        });
+      });
+
+      document.querySelectorAll("[data-type-btn]").forEach(function (b) {
+        b.addEventListener("click", function () {
+          setTimeout(renderBudgetHint, 0);
+        });
+      });
 
       /* --- Inisialisasi preview --- */
       FinanceTrack.TransactionForm.updatePreview();
