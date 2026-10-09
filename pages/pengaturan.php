@@ -3,10 +3,11 @@ require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? $currentUser['nama'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
 $userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
+$userCreatedAt = htmlspecialchars($currentUser['created_at'] ?? '');
 $bootstrapData = getDatabaseBootstrapData((int)$currentUser['id']);
 ?>
 <?php
@@ -98,6 +99,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             Pengaturan
           </a>
         </li>
+        
       </ul>
 
 
@@ -107,13 +109,22 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
     </nav>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <span class="sidebar__avatar" aria-hidden="true"><?= $userAvatar ?></span>
-        <div>
-          <p class="sidebar__user-name"><?= $userName ?></p>
-          <p class="sidebar__user-role"><?= $userRole ?></p>
-        </div>
+        <div style="padding:var(--space-md);background:var(--surface-container-low);margin:var(--space-md);border-radius:var(--radius-md);flex-shrink:0">
+      <?php
+        $totAnggaran = $summary['totalAnggaran'] ?? 3200000;
+        $sisAnggaran = $summary['sisaAnggaran'] ?? 0;
+        $pctAnggaran = $totAnggaran > 0 ? round(($sisAnggaran / $totAnggaran) * 100) : 0;
+      ?>
+      <div class="d-flex align-items-center justify-content-between" style="margin-bottom:var(--space-xs)">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);letter-spacing:0.05em">Sisa Anggaran Bulanan</span>
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--secondary)"><?= $pctAnggaran ?>%</span>
+      </div>
+      <div class="progress" style="background:var(--surface-container-high);height:6px;border-radius:999px;overflow:hidden">
+        <div class="progress__bar" style="background:var(--secondary);height:100%;border-radius:999px;width:<?= $pctAnggaran ?>%"></div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between" style="margin-top:var(--space-sm)">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);letter-spacing:0.05em">Tersedia</span>
+        <span style="font-size:var(--text-md);font-weight:600;color:var(--on-surface);letter-spacing:-0.01em">Rp <?= number_format($sisAnggaran, 0, ',', '.') ?></span>
       </div>
     </div>
   </aside>
@@ -125,7 +136,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
     <!-- Desktop top bar (Stitch: pencarian, notifikasi, profil) -->
     <header class="app__topbar">
-      <div class="row align-items-center" style="gap:var(--space-md);flex:0 1 450px">
+      <div class="d-flex align-items-center" style="gap:var(--space-md);flex:0 1 450px">
         <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka/Tutup menu" aria-controls="sidebar">
           <span class="material-symbols-outlined">menu</span>
         </button>
@@ -137,14 +148,14 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
                  style="background: transparent; border: none; outline: none; box-shadow: none; width: 100%; color: var(--on-surface);">
         </form>
       </div>
-      <div class="row" style="gap:var(--space-md); align-items: center;">
+      <div class="d-flex align-items-center" style="gap:var(--space-md);flex-shrink:0;">
         <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative;height:40px;width:40px;display:flex;align-items:center;justify-content:center;">
           <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
           <span class="topbar__dot" aria-hidden="true"></span>
         </button>
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
-          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:40px;box-sizing:border-box;margin:0;">
-            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:32px;height:32px;font-size:12px;"><?= $userAvatar ?></span>
+          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
+            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
             <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
@@ -163,16 +174,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       </div>
     </header>
 
-    <!-- Mobile header -->
-    <header class="app__header">
-      <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
-        <span class="material-symbols-outlined">menu</span>
-      </button>
-      <div class="app__header-title">
-        <span class="app__header-brand">FinanceTrack</span>
-        <span class="app__header-name">Dashboard</span>
-      </div>
-    </header>
+    
 
     <main class="app__main">
 
@@ -194,15 +196,14 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <!-- Profil -->
           <section class="card card--pad" aria-labelledby="profil-heading">
             <h2 class="section-title" id="profil-heading">Profil Pengguna</h2>
-            <p class="page-subtitle" style="margin-bottom:var(--space-lg)">
-              Data ini hanya tersimpan di perangkatmu pada Milestone 2.
-            </p>
+            
 
             <form class="stack" id="profileForm" novalidate>
               <div class="row" style="gap:var(--space-md);align-items:center;margin-bottom:var(--space-sm)">
-                <span class="sidebar__avatar" style="width:56px;height:56px;font-size:var(--text-lg)" aria-hidden="true">FP</span>
+                <span class="sidebar__avatar" style="width:80px;height:80px;font-size:32px" aria-hidden="true"><?= $userAvatar ?></span>
                 <div>
-                  <button type="button" class="btn btn--secondary btn--sm" data-avatar>
+                  <input type="file" id="avatarUpload" accept="image/png, image/jpeg, image/jpg" style="display:none">
+                  <button type="button" class="btn btn--secondary btn--sm" data-avatar onclick="document.getElementById('avatarUpload').click()">
                     <span class="material-symbols-outlined icon-sm" aria-hidden="true">photo_camera</span>
                     Ubah Foto
                   </button>
@@ -218,23 +219,19 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
                   <input type="text" class="input" id="set-name" name="nama" value="<?= $userName ?>" autocomplete="name">
                 </div>
                 <div class="field">
-                  <label class="field__label" for="set-username">Nama Pengguna</label>
-                  <input type="text" class="input" id="set-username" name="username" value="fikrijuana" autocomplete="username">
+                  <label class="field__label" for="set-email">Email</label>
+                  <input type="email" class="input" id="set-email" name="email" value="<?= $userEmail ?>" autocomplete="email">
                 </div>
               </div>
 
               <div class="grid grid--2">
                 <div class="field">
-                  <label class="field__label" for="set-email">Email</label>
-                  <input type="email" class="input" id="set-email" name="email" value="fikri.juana@kampus.ac.id" autocomplete="email">
+                  <label class="field__label" for="set-role">Peran</label>
+                  <input type="text" class="input" id="set-role" name="peran" value="<?= ucfirst($userRole) ?>" disabled style="background-color: var(--surface-alt); cursor: not-allowed; color: var(--text-secondary);">
                 </div>
                 <div class="field">
-                  <label class="field__label" for="set-role">Peran</label>
-                  <select class="select" id="set-role" name="peran">
-                    <option value="mahasiswa" selected>Mahasiswa</option>
-                    <option value="karyawan">Karyawan</option>
-                    <option value="freelancer">Freelancer</option>
-                  </select>
+                  <label class="field__label" for="set-created">Tanggal Bergabung</label>
+                  <input type="text" class="input" id="set-created" name="created" value="<?= $userCreatedAt ? date('d M Y', strtotime($userCreatedAt)) : 'Tidak diketahui' ?>" disabled style="background-color: var(--surface-alt); cursor: not-allowed; color: var(--text-secondary);">
                 </div>
               </div>
 
@@ -328,9 +325,15 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
               <div>
                 <h2 class="section-title" id="kategori-set-heading">Kategori Transaksi</h2>
-                <p class="page-subtitle">Kategori bawaan yang dipakai pada form &amp; filter.</p>
+                <p class="page-subtitle">Kategori yang dipakai pada form &amp; filter.</p>
               </div>
-              <span class="badge badge--muted" id="category-count"></span>
+              <div class="row">
+                <span class="badge badge--muted" id="category-count"></span>
+                <button type="button" class="btn btn--primary btn--sm" data-add-category>
+                  <span class="material-symbols-outlined icon-sm" aria-hidden="true">add</span>
+                  Tambah
+                </button>
+              </div>
             </div>
             <div id="category-list"></div>
           </section>
@@ -356,8 +359,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <div class="callout callout--warning" style="margin-top:var(--space-md)">
               <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">info</span>
               <div>
-                <p class="callout__title">Milestone 2</p>
-                <p class="callout__text">Penyimpanan permanen, sinkronisasi antar perangkat, dan budgeting kolaboratif akan hadir pada Milestone 3.</p>
+                <p class="callout__title">Penyimpanan Terpusat</p>
+                <p class="callout__text">Semua data Anda tersimpan di server dengan aman dan dapat disinkronisasi.</p>
               </div>
             </div>
           </section>
@@ -381,7 +384,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
               </div>
               <div class="detail-list__row">
                 <span class="detail-list__key">Versi</span>
-                <span class="detail-list__val">Milestone 2 — Frontend</span>
+                <span class="detail-list__val">Versi 1.0 (Stabil)</span>
               </div>
               <div class="detail-list__row">
                 <span class="detail-list__key">Periode demo</span>
@@ -402,7 +405,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <section class="card card--pad" aria-labelledby="akun-heading">
             <h2 class="section-title" id="akun-heading">Sesi &amp; Akun</h2>
             <div class="row" style="gap:var(--space-md);align-items:center;margin:var(--space-md) 0">
-              <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:48px;height:48px;font-size:var(--text-md)">FP</span>
+              <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:64px;height:64px;font-size:24px"><?= $userAvatar ?></span>
               <div style="flex:1;min-width:0">
                 <div class="sidebar__user-name" data-user-name style="font-weight:600"><?= $userName ?></div>
                 <div class="sidebar__user-role text-secondary" data-user-email style="font-size:var(--text-xs)"><?= $userEmail ?></div>
@@ -454,6 +457,53 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     </div>
   </div>
 
+  <div class="modal" id="modal-category" role="dialog" aria-modal="true" aria-labelledby="cat-modal-title">
+    <div class="modal__dialog">
+      <h2 class="modal__title" id="cat-modal-title">Kategori</h2>
+      <form id="cat-form" class="stack" style="margin-top:var(--space-md)">
+        <input type="hidden" id="cat-id" name="id">
+        <div class="field">
+            <label class="field__label" for="cat-name">Nama Kategori</label>
+            <input type="text" class="input" id="cat-name" name="name" required>
+        </div>
+                <div class="grid grid--2">
+            <div class="field">
+                <label class="field__label" for="cat-type">Jenis</label>
+                <select class="select" id="cat-type" name="type">
+                    <option value="expense">Pengeluaran</option>
+                    <option value="income">Pemasukan</option>
+                </select>
+            </div>
+            <div class="field">
+                <label class="field__label" for="cat-color">Warna</label>
+                <input type="color" class="input" id="cat-color" name="color" value="#0284c7" style="height:42px;padding:4px;cursor:pointer">
+            </div>
+        </div>
+        <div class="field">
+            <label class="field__label">Ikon Kategori</label>
+            <input type="hidden" id="cat-icon" name="icon" value="category" required>
+            <div class="icon-picker" style="border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-xs);background:var(--surface);">
+                <div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-xs);align-items:center;">
+                    <div style="width:36px;height:36px;background:var(--surface-alt);border-radius:var(--radius-sm);display:grid;place-items:center;border:1px solid var(--border);flex-shrink:0;" id="preview-bg">
+                        <span class="material-symbols-outlined icon-sm" id="selected-icon-preview" style="color:var(--text)">category</span>
+                    </div>
+                    <div style="flex:1;position:relative;">
+                        <span class="material-symbols-outlined icon-sm" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:16px;">search</span>
+                        <input type="text" id="icon-search" class="input" placeholder="Cari ikon..." style="width:100%;min-height:36px;padding:4px 8px 4px 32px;font-size:var(--text-sm);" autocomplete="off">
+                    </div>
+                </div>
+                <div id="icon-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(36px,1fr));gap:4px;max-height:120px;overflow-y:auto;padding:2px;">
+                </div>
+            </div>
+        </div>
+        <div class="modal__actions" style="margin-top:var(--space-md)">
+            <button type="button" class="btn btn--secondary" data-cat-close>Batal</button>
+            <button type="submit" class="btn btn--primary">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <div class="toast" data-toast role="status" aria-live="polite">
     <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
     <div>
@@ -474,37 +524,211 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       var F = FinanceTrack.Feedback;
 
       /* --- Daftar kategori --- */
-      var income = D.incomeCategories().length;
-      var expense = D.expenseCategories().length;
+      function renderCategories() {
+        var income = D.incomeCategories().length;
+        var expense = D.expenseCategories().length;
 
-      document.getElementById("category-count").textContent =
-        expense + " pengeluaran · " + income + " pemasukan";
+        document.getElementById("category-count").textContent =
+          expense + " pengeluaran · " + income + " pemasukan";
 
-      document.getElementById("category-list").innerHTML =
-        '<div class="table-wrap">' +
-        '<table class="table">' +
-          '<caption class="visually-hidden">Daftar kategori transaksi bawaan</caption>' +
-          '<thead><tr><th scope="col">Kategori</th><th scope="col">Jenis</th><th scope="col">Status</th></tr></thead>' +
-          '<tbody>' +
-            D.categories.map(function (c) {
-              var isIncome = c.tipe === "income";
-              var hasBudget = D.budgets.some(function (b) { return b.kategoriId === c.id; });
-              return '<tr>' +
-                '<td><div class="cell-identity">' +
-                  '<span class="cell-icon ' + (isIncome ? "cell-icon--income" : "cell-icon--expense") + '" aria-hidden="true">' +
-                    '<span class="material-symbols-outlined icon-sm">' + esc(c.icon) + '</span></span>' +
-                  '<div class="cell-identity__text">' +
-                    '<span class="cell-identity__title">' + esc(c.nama) + '</span>' +
-                  '</div></div></td>' +
-                '<td><span class="badge ' + (isIncome ? "badge--income" : "badge--expense") + '">' +
-                  (isIncome ? "Pemasukan" : "Pengeluaran") + '</span></td>' +
-                '<td>' + (hasBudget
-                  ? '<span class="badge badge--primary">Ada anggaran</span>'
-                  : '<span class="badge badge--muted">Tanpa batas</span>') + '</td>' +
-              '</tr>';
-            }).join("") +
-          '</tbody>' +
-        '</table></div>';
+        document.getElementById("category-list").innerHTML =
+          '<div class="table-wrap">' +
+          '<table class="table">' +
+            '<caption class="visually-hidden">Daftar kategori transaksi bawaan</caption>' +
+            '<thead><tr><th scope="col">Kategori</th><th scope="col">Jenis</th><th scope="col">Status</th><th scope="col" style="text-align:right">Aksi</th></tr></thead>' +
+            '<tbody>' +
+              D.categories.map(function (c) {
+                var isIncome = c.tipe === "income";
+                var hasBudget = D.budgets.some(function (b) { return b.kategoriId === c.id; });
+                return '<tr>' +
+                  '<td><div class="cell-identity">' +
+                    '<span class="cell-icon" aria-hidden="true" style="background-color: '+esc(c.warna)+'20; color: '+esc(c.warna)+'">' +
+                      '<span class="material-symbols-outlined icon-sm">' + esc(c.icon) + '</span></span>' +
+                    '<div class="cell-identity__text">' +
+                      '<span class="cell-identity__title">' + esc(c.nama) + '</span>' +
+                    '</div></div></td>' +
+                  '<td><span class="badge ' + (isIncome ? "badge--income" : "badge--expense") + '">' +
+                    (isIncome ? "Pemasukan" : "Pengeluaran") + '</span></td>' +
+                  '<td>' + (hasBudget
+                    ? '<span class="badge badge--primary">Ada anggaran</span>'
+                    : '<span class="badge badge--muted">Tanpa batas</span>') + '</td>' +
+                  '<td style="text-align:right;white-space:nowrap">' +
+                    '<button type="button" class="btn btn--icon btn--ghost" data-edit-cat="'+esc(c.id)+'" aria-label="Edit Kategori"><span class="material-symbols-outlined icon-sm">edit</span></button>' +
+                    '<button type="button" class="btn btn--icon btn--ghost text-danger" data-delete-cat="'+esc(c.id)+'" aria-label="Hapus Kategori"><span class="material-symbols-outlined icon-sm">delete</span></button>' +
+                  '</td>' +
+                '</tr>';
+              }).join("") +
+            '</tbody>' +
+          '</table></div>';
+      }
+      renderCategories();
+
+      /* --- Logika Kategori (Tambah, Edit, Hapus) --- */
+              var catModal = document.getElementById("modal-category");
+        var catForm = document.getElementById("cat-form");
+        
+        var CAT_ICONS = ["category","home","shopping_cart","fastfood","restaurant","local_cafe","directions_car","local_gas_station","flight","build","favorite","medical_services","school","pets","fitness_center","movie","sports_esports","receipt_long","payments","attach_money","trending_up","trending_down","savings","redeem","volunteer_activism","account_balance","account_balance_wallet","credit_card","shopping_bag","store","work","health_and_safety","celebration","checkroom","face","child_care","stroller","train","two_wheeler","local_shipping"];
+        var iGrid = document.getElementById("icon-grid");
+        var iSearch = document.getElementById("icon-search");
+        var iInput = document.getElementById("cat-icon");
+        var iPreview = document.getElementById("selected-icon-preview");
+        var iBg = document.getElementById("preview-bg");
+        var cInput = document.getElementById("cat-color");
+        
+        function renderIconPicker(filter = "") {
+            if(!iGrid) return;
+            iGrid.innerHTML = "";
+            var search = filter.toLowerCase();
+            CAT_ICONS.forEach(function(icon) {
+                if (icon.indexOf(search) === -1) return;
+                var btn = document.createElement("button");
+                btn.type = "button";
+                var isActive = (iInput.value === icon);
+                btn.innerHTML = '<span class="material-symbols-outlined icon-sm" style="pointer-events:none">' + icon + '</span>';
+                btn.style.cssText = 'width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--text-secondary);transition:all 0.2s;';
+                if (isActive) {
+                    btn.style.background = cInput.value + "20";
+                    btn.style.color = cInput.value;
+                    btn.style.borderColor = cInput.value;
+                }
+                btn.title = icon;
+                btn.onclick = function() {
+                    iInput.value = icon;
+                    updateIconPreview();
+                };
+                iGrid.appendChild(btn);
+            });
+        }
+        
+        function updateIconPreview() {
+            if(!iPreview) return;
+            iPreview.textContent = iInput.value;
+            iPreview.style.color = cInput.value;
+            iBg.style.background = cInput.value + "20";
+            renderIconPicker(iSearch ? iSearch.value : "");
+        }
+        
+        if (iSearch) iSearch.addEventListener("input", function(e) { renderIconPicker(e.target.value); });
+        if (cInput) cInput.addEventListener("input", updateIconPreview);
+
+        function openCatModal(id) {
+          catForm.reset();
+        if (id) {
+              var cat = D.categories.find(function(c) { return String(c.id) === String(id); });
+            if (cat) {
+                                document.getElementById("cat-modal-title").textContent = "Edit Kategori";
+                document.getElementById("cat-id").value = cat.id;
+                document.getElementById("cat-name").value = cat.nama;
+                document.getElementById("cat-type").value = cat.tipe;
+                document.getElementById("cat-icon").value = cat.icon;
+                document.getElementById("cat-color").value = cat.warna;
+            }
+        } else {
+            document.getElementById("cat-modal-title").textContent = "Tambah Kategori";
+            document.getElementById("cat-id").value = "";
+            document.getElementById("cat-icon").value = "category";
+            document.getElementById("cat-color").value = "#0284c7";
+            if(iSearch) iSearch.value = "";
+        }
+        updateIconPreview();
+        catModal.classList.add("is-open");
+      }
+
+      function closeCatModal() {
+        catModal.classList.remove("is-open");
+      }
+
+      document.querySelector("[data-add-category]").addEventListener("click", function() { openCatModal(); });
+      document.querySelector("[data-cat-close]").addEventListener("click", function() { closeCatModal(); });
+
+      document.getElementById("category-list").addEventListener("click", function(e) {
+        var btnEdit = e.target.closest("[data-edit-cat]");
+        if (btnEdit) {
+            openCatModal(btnEdit.getAttribute("data-edit-cat"));
+        }
+        var btnDelete = e.target.closest("[data-delete-cat]");
+        if (btnDelete) {
+            var id = btnDelete.getAttribute("data-delete-cat");
+            F.openModal({
+                title: "Hapus Kategori?",
+                message: "Kategori akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.",
+                confirmText: "Hapus",
+                onConfirm: function() {
+                    var formData = new FormData();
+                    formData.append("id", id);
+                    fetch("../api/categories/delete.php", {
+                        method: "POST",
+                        body: formData
+                    })
+                    .then(function(res) { return res.json(); })
+                    .then(function(res) {
+                        if (res.success) {
+                            F.showToast("Berhasil", res.message, "check_circle");
+                            var idx = D.categories.findIndex(function(c) { return String(c.id) === String(id); });
+                            if (idx > -1) D.categories.splice(idx, 1);
+                            renderCategories();
+                        } else {
+                            F.showToast("Gagal", res.message, "error");
+                        }
+                    }).catch(function(err) {
+                        console.error(err);
+                        F.showToast("Error", "Gagal menghubungi server.", "error");
+                    });
+                }
+            });
+        }
+      });
+
+      catForm.addEventListener("submit", function(e) {
+        e.preventDefault();
+        var id = document.getElementById("cat-id").value;
+        var name = document.getElementById("cat-name").value;
+        var type = document.getElementById("cat-type").value;
+        var icon = document.getElementById("cat-icon").value;
+        var color = document.getElementById("cat-color").value;
+
+        var url = id ? "../api/categories/update.php" : "../api/categories/create.php";
+        var formData = new FormData();
+        if (id) formData.append("id", id);
+        formData.append("name", name);
+        formData.append("type", type);
+        formData.append("icon", icon);
+        formData.append("color", color);
+
+        var btn = catForm.querySelector("button[type=submit]");
+        var oldText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Menyimpan...";
+
+        fetch(url, {
+            method: "POST",
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(res) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+            if (res.success) {
+                F.showToast("Berhasil", res.message, "check_circle");
+                if (id) {
+                    var idx = D.categories.findIndex(function(c) { return String(c.id) === String(id); });
+                    if (idx > -1) D.categories[idx] = res.data;
+                } else {
+                    D.categories.push(res.data);
+                }
+                D.categories.sort(function(a,b) { return a.nama.localeCompare(b.nama); });
+                renderCategories();
+                closeCatModal();
+            } else {
+                F.showToast("Gagal", res.message, "error");
+            }
+        }).catch(function(err) {
+            btn.disabled = false;
+            btn.textContent = oldText;
+            console.error(err);
+            F.showToast("Error", "Gagal menyimpan kategori.", "error");
+        });
+      });
 
       /* --- Metode pembayaran --- */
       document.getElementById("method-list").innerHTML = D.paymentMethods
@@ -521,11 +745,43 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       /* --- Simpan profil --- */
       document.getElementById("profileForm").addEventListener("submit", function (e) {
         e.preventDefault();
-        F.showToast(
-          "Profil disimpan",
-          "Perubahan profil dicatat untuk sesi ini.",
-          "check_circle"
-        );
+
+        var nameVal = document.getElementById('set-name').value.trim();
+        var emailVal = document.getElementById('set-email').value.trim();
+        if (!nameVal || !emailVal) {
+            F.showToast('Data tidak valid', 'Nama lengkap dan email wajib diisi.', 'error');
+            return;
+        }
+
+        var btn = this.querySelector('button[type="submit"]');
+        var oldText = btn.innerHTML;
+        btn.disabled = true;
+        btn.textContent = "Menyimpan...";
+        
+        var formData = new FormData(this);
+        
+        fetch("../api/auth/update_profile.php", {
+            method: "POST",
+            body: formData
+        })
+        .then(function(res) { return res.json(); })
+        .then(function(res) {
+            btn.disabled = false;
+            btn.innerHTML = oldText;
+            if (res.success) {
+                F.showToast("Profil disimpan", res.message, "check_circle");
+                U.qsa("[data-user-name]").forEach(function(el) { el.textContent = res.data.nama; });
+                U.qsa("[data-user-email]").forEach(function(el) { el.textContent = res.data.email; });
+            } else {
+                F.showToast("Gagal", res.message, "error");
+            }
+        })
+        .catch(function(err) {
+            btn.disabled = false;
+            btn.innerHTML = oldText;
+            console.error(err);
+            F.showToast("Error", "Gagal menghubungi server.", "error");
+        });
       });
 
       document.querySelector("[data-reset-profile]").addEventListener("click", function () {
@@ -533,13 +789,58 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         F.showToast("Profil dikembalikan", "Field profil dikosongkan kembali.", "undo");
       });
 
-      document.querySelector("[data-avatar]").addEventListener("click", function () {
-        F.showToast(
-          "Unggah foto",
-          "Pemilih gambar akan aktif setelah integrasi penyimpanan lokal.",
-          "photo_camera"
-        );
-      });
+      var avatarUpload = document.getElementById("avatarUpload");
+      if (avatarUpload) {
+        avatarUpload.addEventListener("change", function (e) {
+          var file = e.target.files[0];
+          if (!file) return;
+
+          if (file.size > 1048576) {
+            F.showToast("Gagal", "Ukuran foto melebihi 1MB.", "error");
+            e.target.value = '';
+            return;
+          }
+
+          var formData = new FormData();
+          formData.append("avatar", file);
+
+          F.showToast("Mengunggah", "Sedang menyimpan foto...", "cloud_upload");
+
+          fetch("../api/auth/upload_avatar.php", {
+            method: "POST",
+            body: formData
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(res) {
+            if (res.success) {
+              F.showToast("Berhasil", res.message, "check_circle");
+              if (window.FinanceTrackAPI) {
+                window.FinanceTrackAPI.getMe().then(function(meRes) {
+                  if (meRes && meRes.success && meRes.data && meRes.data.user) {
+                    var u = meRes.data.user;
+                    U.qsa(".sidebar__avatar").forEach(function(el) {
+                      if (u.avatar_url) {
+                        el.style.backgroundImage = 'url("' + u.avatar_url + '")';
+                        el.style.backgroundSize = 'cover';
+                        el.style.backgroundPosition = 'center';
+                        el.style.color = 'transparent';
+                      }
+                    });
+                  }
+                });
+              }
+            } else {
+              F.showToast("Gagal", res.message || "Gagal menyimpan foto.", "error");
+            }
+          })
+          .catch(function(err) {
+            console.error(err);
+            F.showToast("Error", "Terjadi kesalahan jaringan.", "error");
+          });
+          
+          e.target.value = '';
+        });
+      }
 
       /* --- Ekspor nyata --- */
       var exportBtn = document.querySelector("[data-export]");

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
@@ -24,7 +24,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard FinanceTrack — ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
+  <meta name="description" content="Dashboard FinanceTrack â€” ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
     <title>Laporan &mdash; FinanceTrack</title>
   <script>
     window.__FT_BOOTSTRAP__ = <?= json_encode($bootstrapData, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
@@ -87,6 +87,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             Pengaturan
           </a>
         </li>
+        
       </ul>
 
 
@@ -96,13 +97,22 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
     </nav>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <span class="sidebar__avatar" aria-hidden="true"><?= $userAvatar ?></span>
-        <div>
-          <p class="sidebar__user-name"><?= $userName ?></p>
-          <p class="sidebar__user-role"><?= $userRole ?></p>
-        </div>
+        <div style="padding:var(--space-md);background:var(--surface-container-low);margin:var(--space-md);border-radius:var(--radius-md);flex-shrink:0">
+      <?php
+        $totAnggaran = $summary['totalAnggaran'] ?? 3200000;
+        $sisAnggaran = $summary['sisaAnggaran'] ?? 0;
+        $pctAnggaran = $totAnggaran > 0 ? round(($sisAnggaran / $totAnggaran) * 100) : 0;
+      ?>
+      <div class="d-flex align-items-center justify-content-between" style="margin-bottom:var(--space-xs)">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);letter-spacing:0.05em">Sisa Anggaran Bulanan</span>
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--secondary)"><?= $pctAnggaran ?>%</span>
+      </div>
+      <div class="progress" style="background:var(--surface-container-high);height:6px;border-radius:999px;overflow:hidden">
+        <div class="progress__bar" style="background:var(--secondary);height:100%;border-radius:999px;width:<?= $pctAnggaran ?>%"></div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between" style="margin-top:var(--space-sm)">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);letter-spacing:0.05em">Tersedia</span>
+        <span style="font-size:var(--text-md);font-weight:600;color:var(--on-surface);letter-spacing:-0.01em">Rp <?= number_format($sisAnggaran, 0, ',', '.') ?></span>
       </div>
     </div>
   </aside>
@@ -114,7 +124,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
     <!-- Desktop top bar (Stitch: pencarian, notifikasi, profil) -->
     <header class="app__topbar">
-      <div class="row align-items-center" style="gap:var(--space-md);flex:0 1 450px">
+      <div class="d-flex align-items-center" style="gap:var(--space-md);flex:0 1 450px">
         <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka/Tutup menu" aria-controls="sidebar">
           <span class="material-symbols-outlined">menu</span>
         </button>
@@ -126,14 +136,14 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
                  style="background: transparent; border: none; outline: none; box-shadow: none; width: 100%; color: var(--on-surface);">
         </form>
       </div>
-      <div class="row" style="gap:var(--space-md); align-items: center;">
+      <div class="d-flex align-items-center" style="gap:var(--space-md);flex-shrink:0;">
         <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative;height:40px;width:40px;display:flex;align-items:center;justify-content:center;">
           <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
           <span class="topbar__dot" aria-hidden="true"></span>
         </button>
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
-          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:40px;box-sizing:border-box;margin:0;">
-            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:32px;height:32px;font-size:12px;"><?= $userAvatar ?></span>
+          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
+            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
             <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
@@ -152,16 +162,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       </div>
     </header>
 
-    <!-- Mobile header -->
-    <header class="app__header">
-      <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
-        <span class="material-symbols-outlined">menu</span>
-      </button>
-      <div class="app__header-title">
-        <span class="app__header-brand">FinanceTrack</span>
-        <span class="app__header-name">Dashboard</span>
-      </div>
-    </header>
+    
 
     <main class="app__main">
 
@@ -186,7 +187,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <option value="<?= date('Y') - 1 ?>">Tahun <?= date('Y') - 1 ?></option>
             <option value="<?= date('Y') - 2 ?>">Tahun <?= date('Y') - 2 ?></option>
           </select>
-          <div class="row row--wrap page-header__export-group" style="gap:var(--space-sm)">
+          <div class="d-flex align-items-center flex-wrap page-header__export-group" style="gap:var(--space-sm)">
             <button type="button" class="btn btn--secondary text-primary" id="btnExportCsv" data-export-csv>
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">table_view</span>
               Ekspor Excel (CSV)
@@ -265,7 +266,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
               </span>
             </div>
             <div>
-              <p class="summary-card__value numeric text-primary">Rp 69.350</p>
+              <p class="summary-card__value numeric text-primary" data-report-avg-daily>Rp 0</p>
               <p class="summary-card__meta">Di bawah batas Rp 75.000/hari</p>
             </div>
           </article>
@@ -273,7 +274,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       </section>
 
       <!-- Chart area -->
-      <section class="card card--pad" style="margin-top:var(--gutter)" aria-labelledby="arus-kas-heading">
+      <section id="section-arus-kas" class="card card--pad" style="margin-top:var(--gutter)" aria-labelledby="arus-kas-heading">
         <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
           <div>
             <h2 class="section-title" id="arus-kas-heading">Arus Kas Harian</h2>
@@ -338,7 +339,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">verified</span>
             <div>
               <p class="callout__title">Rasio aman</p>
-              <p class="callout__text">Pengeluaranmu 79,6% dari pemasukan — masih di bawah batas aman 90% yang disarankan.</p>
+              <p class="callout__text">Pengeluaranmu 79,6% dari pemasukan â€” masih di bawah batas aman 90% yang disarankan.</p>
             </div>
           </div>
         </section>
@@ -349,7 +350,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
           <div>
             <h2 class="section-title" id="rekap-bulan-heading">Rekap 6 Bulan Terakhir</h2>
-            <p class="page-subtitle">Perbandingan pemasukan dan pengeluaran bulanan (Mei — <?= $summary['periode'] ?>).</p>
+            <p class="page-subtitle">Perbandingan pemasukan dan pengeluaran bulanan (Mei â€” <?= $summary['periode'] ?>).</p>
           </div>
           <div class="chart-legend">
             <span class="chart-legend__item"><i class="chart-legend__swatch" style="background:var(--primary)"></i> Pemasukan</span>
@@ -426,15 +427,23 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       document.querySelector("[data-report-expense]").textContent =
         U.formatRupiah(D.summary.pengeluaran);
       document.querySelector("[data-report-saving]").textContent =
-        "+" + U.formatRupiah(sisa);
+        (sisa >= 0 ? "+" : "-") + U.formatRupiah(Math.abs(sisa));
       document.querySelector("[data-report-saving-ratio]").textContent =
         rasio.toFixed(1) + "% Disimpan";
+      
+      var initialDays = D.summary.tanggal || 1;
+      var initialAvgDaily = Math.round(D.summary.pengeluaran / initialDays);
+      var avgDailyEl = document.querySelector("[data-report-avg-daily]");
+      if (avgDailyEl) avgDailyEl.textContent = U.formatRupiah(initialAvgDaily);
 
-      /* --- Ekspor / cetak nyata --- */
+      /* --- State Filter & Ekspor --- */
+      var currentRange = 'bulanan';
+      var currentYear = document.querySelector("[data-report-year]") ? document.querySelector("[data-report-year]").value : new Date().getFullYear();
+
       var btnCsv = document.getElementById("btnExportCsv") || document.querySelector("[data-export-csv]");
       if (btnCsv) {
         btnCsv.addEventListener("click", function () {
-          window.location.href = "../api/reports/export_csv.php";
+          window.location.href = "../api/reports/export_csv.php?range=" + currentRange + "&year=" + currentYear;
         });
       }
 
@@ -445,16 +454,123 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         });
       }
 
+      function updateReports() {
+        var url = "../api/reports/summary.php?range=" + currentRange + "&year=" + currentYear;
+        fetch(url)
+          .then(function(res) { return res.json(); })
+          .then(function(res) {
+            if (res.success) {
+                var sum = res.summary;
+                document.querySelector("[data-report-income]").textContent = U.formatRupiah(sum.pemasukan);
+                document.querySelector("[data-report-expense]").textContent = U.formatRupiah(sum.pengeluaran);
+                var sisaText = sum.sisaTabungan >= 0 ? "+" + U.formatRupiah(sum.sisaTabungan) : "-" + U.formatRupiah(Math.abs(sum.sisaTabungan));
+                document.querySelector("[data-report-saving]").textContent = sisaText;
+                document.querySelector("[data-report-saving-ratio]").textContent = sum.rasioTabungan.toFixed(1) + "% Disimpan";
+
+                var days = 30;
+                if (currentRange === 'tahunan') days = 365;
+                else if (currentRange === 'kuartalan') days = 90;
+                else {
+                    var now = new Date();
+                    if (parseInt(currentYear) === now.getFullYear()) days = now.getDate() || 1;
+                    else days = 30;
+                }
+                var avgDailyEl = document.querySelector("[data-report-avg-daily]");
+                if (avgDailyEl) avgDailyEl.textContent = U.formatRupiah(Math.round(sum.pengeluaran / days));
+
+                var catRows = res.categoryReport ? res.categoryReport.filter(function(r) { return r.total > 0; }) : [];
+                var tableHtml = '';
+                if (catRows && catRows.length > 0) {
+                    var maxTotal = catRows[0].total || 1;
+                    tableHtml = '<div class="table-wrap table--responsive"><table class="table">' +
+                      '<caption class="visually-hidden">Rekap pengeluaran per kategori</caption>' +
+                      '<thead><tr><th scope="col">Kategori</th><th scope="col" class="table__num">Total</th>' +
+                      '<th scope="col" class="table__num">Porsi</th><th scope="col">Proporsi</th>' +
+                      '<th scope="col" class="table__num">Rata-rata / hari</th></tr></thead><tbody>' +
+                      catRows.map(function(r) {
+                        var pct = U.percent(r.total, maxTotal);
+                        var avgDaily = Math.round(r.total / days);
+                        
+                        return '<tr>' +
+                          '<td><div class="cell-identity"><span class="cell-icon" style="background-color: '+esc(r.warna)+'20; color: '+esc(r.warna)+'"><span class="material-symbols-outlined icon-sm">' + esc(r.icon) + '</span></span>' +
+                          '<div class="cell-identity__text"><span class="cell-identity__title">' + esc(r.nama) + '</span>' +
+                          '<span class="cell-identity__sub">' + r.jumlahTransaksi + ' transaksi</span></div></div></td>' +
+                          '<td class="table__num numeric text-expense">' + esc(U.formatRupiah(r.total)) + '</td>' +
+                          '<td class="table__num numeric">' + r.persen.toFixed(1) + '%</td>' +
+                          '<td><div class="progress" style="min-width:120px"><div class="progress__bar" style="background-color: '+esc(r.warna)+'; width:' + pct + '%"></div></div></td>' +
+                          '<td class="table__num numeric">' + esc(U.formatRupiah(avgDaily)) + '</td>' +
+                          '</tr>';
+                      }).join('') + '</tbody></table></div>';
+                } else {
+                    tableHtml = '<div style="padding:var(--space-xl);text-align:center;color:var(--text-secondary)">Tidak ada data pengeluaran untuk periode ini.</div>';
+                }
+                document.getElementById("report-table").innerHTML = tableHtml;
+
+                var dailySection = document.getElementById("section-arus-kas");
+                if (dailySection) {
+                    dailySection.style.display = currentRange !== 'bulanan' ? 'none' : '';
+                }
+
+                if (typeof Chart !== "undefined") {
+                    var expenseCtx = document.querySelector("[data-chart-expense]");
+                    if (expenseCtx && Chart.getChart(expenseCtx)) {
+                        var expChart = Chart.getChart(expenseCtx);
+                        expChart.data.labels = catRows.map(function(r) { return r.nama; });
+                        expChart.data.datasets[0].data = catRows.map(function(r) { return r.total; });
+                        expChart.data.datasets[0].backgroundColor = catRows.map(function(r) { return r.warna; });
+                        expChart.update();
+                        
+                        var legendEl = document.querySelector("[data-chart-expense-legend]");
+                        if (legendEl) {
+                            legendEl.innerHTML = catRows.map(function(r) { 
+                                return '<li class="legend-list__item" style="display:flex;align-items:center;gap:8px;font-size:var(--text-sm);margin-bottom:8px;"><span style="width:12px;height:12px;border-radius:50%;background:'+r.warna+';display:inline-block;"></span><span style="flex:1">'+r.nama+'</span><span style="font-weight:600">'+r.persen+'%</span></li>';
+                            }).join('');
+                        }
+                    }
+
+                    var monthlyCtx = document.querySelector("[data-chart-monthly]");
+                    if (monthlyCtx && Chart.getChart(monthlyCtx)) {
+                        var mChart = Chart.getChart(monthlyCtx);
+                        var mData = res.monthlyRecap;
+                        mChart.data.labels = mData.map(function(m) { return m.bulan; });
+                        mChart.data.datasets[0].data = mData.map(function(m) { return m.pemasukan; });
+                        mChart.data.datasets[1].data = mData.map(function(m) { return m.pengeluaran; });
+                        mChart.update();
+                    }
+
+                    if (currentRange === 'bulanan' && res.dailyCashflow) {
+                        var cashflowCtx = document.querySelector("[data-chart-cashflow]");
+                        if (cashflowCtx && Chart.getChart(cashflowCtx)) {
+                            var cfChart = Chart.getChart(cashflowCtx);
+                            var cfData = res.dailyCashflow;
+                            cfChart.data.labels = cfData.map(function(c) { return c.tanggal; });
+                            cfChart.data.datasets[0].data = cfData.map(function(c) { return c.pemasukan; });
+                            cfChart.data.datasets[1].data = cfData.map(function(c) { return c.pengeluaran; });
+                            cfChart.update();
+                        }
+                    }
+                }
+
+                FinanceTrack.Feedback.showToast(
+                  "Laporan diperbarui",
+                  "Menampilkan data " + currentRange + " tahun " + currentYear + ".",
+                  "check_circle"
+                );
+            }
+          })
+          .catch(function(err) {
+              console.error(err);
+              FinanceTrack.Feedback.showToast("Error", "Gagal memuat data laporan.", "error");
+          });
+      }
+
       /* --- Filter periode --- */
       document.querySelectorAll("[data-range]").forEach(function (chip) {
         chip.addEventListener("click", function () {
           document.querySelectorAll("[data-range]").forEach(function (c) { c.classList.remove("is-active"); });
           chip.classList.add("is-active");
-          FinanceTrack.Feedback.showToast(
-            "Rentang diperbarui",
-            "Menampilkan data " + chip.textContent.trim().toLowerCase() + ".",
-            "date_range"
-          );
+          currentRange = chip.getAttribute("data-range");
+          updateReports();
         });
       });
 
@@ -462,11 +578,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       var yearSelect = document.querySelector("[data-report-year]");
       if (yearSelect) {
         yearSelect.addEventListener("change", function () {
-          FinanceTrack.Feedback.showToast(
-            "Tahun diperbarui",
-            "Menampilkan laporan tahun " + yearSelect.value + ".",
-            "date_range"
-          );
+          currentYear = yearSelect.value;
+          updateReports();
         });
       }
 
@@ -475,38 +588,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       var maxTotal = rows.length ? rows[0].total : 1;
       var totalExpense = rows.reduce(function (s, r) { return s + r.total; }, 0) || 1;
 
-      document.getElementById("report-table").innerHTML =
-        '<div class="table-wrap table--responsive">' +
-        '<table class="table">' +
-          '<caption class="visually-hidden">Rekap pengeluaran per kategori bulan <?= $summary['periode'] ?></caption>' +
-          '<thead><tr>' +
-            '<th scope="col">Kategori</th>' +
-            '<th scope="col" class="table__num">Total</th>' +
-            '<th scope="col" class="table__num">Porsi</th>' +
-            '<th scope="col">Proporsi</th>' +
-            '<th scope="col" class="table__num">Rata-rata / hari</th>' +
-          '</tr></thead>' +
-          '<tbody>' +
-            rows.map(function (r) {
-              var pct = U.percent(r.total, maxTotal);
-              var share = U.percent(r.total, totalExpense);
-              return '<tr>' +
-                '<td><div class="cell-identity">' +
-                  '<span class="cell-icon cell-icon--primary" aria-hidden="true">' +
-                    '<span class="material-symbols-outlined icon-sm">' + esc(r.icon) + '</span></span>' +
-                  '<div class="cell-identity__text">' +
-                    '<span class="cell-identity__title">' + esc(r.nama) + '</span>' +
-                    '<span class="cell-identity__sub">' + r.jumlah + ' transaksi</span>' +
-                  '</div></div></td>' +
-                '<td class="table__num numeric text-expense">' + esc(U.formatRupiah(r.total)) + '</td>' +
-                '<td class="table__num numeric">' + share.toFixed(1) + '%</td>' +
-                '<td><div class="progress" style="min-width:120px">' +
-                  '<div class="progress__bar" style="width:' + pct + '%"></div></div></td>' +
-                '<td class="table__num numeric">' + esc(U.formatRupiah(Math.round(r.total / D.summary.tanggal))) + '</td>' +
-              '</tr>';
-            }).join("") +
-          '</tbody>' +
-        '</table></div>';
+      // Trigger updateReports on load to ensure consistency with API
+      updateReports();
     });
   </script>
 

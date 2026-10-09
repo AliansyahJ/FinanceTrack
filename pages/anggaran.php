@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
@@ -24,7 +24,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard FinanceTrack — ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
+  <meta name="description" content="Dashboard FinanceTrack â€” ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
     <title>Anggaran &mdash; FinanceTrack</title>
   <script>
     window.__FT_BOOTSTRAP__ = <?= json_encode($bootstrapData, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
@@ -87,6 +87,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             Pengaturan
           </a>
         </li>
+        
       </ul>
 
 
@@ -96,13 +97,22 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
     </nav>
 
-    <div class="sidebar__footer">
-      <div class="sidebar__user">
-        <span class="sidebar__avatar" aria-hidden="true"><?= $userAvatar ?></span>
-        <div>
-          <p class="sidebar__user-name"><?= $userName ?></p>
-          <p class="sidebar__user-role"><?= $userRole ?></p>
-        </div>
+        <div style="padding:var(--space-md);background:var(--surface-container-low);margin:var(--space-md);border-radius:var(--radius-md);flex-shrink:0">
+      <?php
+        $totAnggaran = $summary['totalAnggaran'] ?? 3200000;
+        $sisAnggaran = $summary['sisaAnggaran'] ?? 0;
+        $pctAnggaran = $totAnggaran > 0 ? round(($sisAnggaran / $totAnggaran) * 100) : 0;
+      ?>
+      <div class="d-flex align-items-center justify-content-between" style="margin-bottom:var(--space-xs)">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);letter-spacing:0.05em">Sisa Anggaran Bulanan</span>
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--secondary)"><?= $pctAnggaran ?>%</span>
+      </div>
+      <div class="progress" style="background:var(--surface-container-high);height:6px;border-radius:999px;overflow:hidden">
+        <div class="progress__bar" style="background:var(--secondary);height:100%;border-radius:999px;width:<?= $pctAnggaran ?>%"></div>
+      </div>
+      <div class="d-flex align-items-center justify-content-between" style="margin-top:var(--space-sm)">
+        <span style="font-size:var(--text-xs);font-weight:600;color:var(--text-secondary);letter-spacing:0.05em">Tersedia</span>
+        <span style="font-size:var(--text-md);font-weight:600;color:var(--on-surface);letter-spacing:-0.01em">Rp <?= number_format($sisAnggaran, 0, ',', '.') ?></span>
       </div>
     </div>
   </aside>
@@ -114,7 +124,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
     <!-- Desktop top bar (Stitch: pencarian, notifikasi, profil) -->
     <header class="app__topbar">
-      <div class="row align-items-center" style="gap:var(--space-md);flex:0 1 450px">
+      <div class="d-flex align-items-center" style="gap:var(--space-md);flex:0 1 450px">
         <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka/Tutup menu" aria-controls="sidebar">
           <span class="material-symbols-outlined">menu</span>
         </button>
@@ -126,14 +136,14 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
                  style="background: transparent; border: none; outline: none; box-shadow: none; width: 100%; color: var(--on-surface);">
         </form>
       </div>
-      <div class="row" style="gap:var(--space-md); align-items: center;">
+      <div class="d-flex align-items-center" style="gap:var(--space-md);flex-shrink:0;">
         <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative;height:40px;width:40px;display:flex;align-items:center;justify-content:center;">
           <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
           <span class="topbar__dot" aria-hidden="true"></span>
         </button>
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
-          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:40px;box-sizing:border-box;margin:0;">
-            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:32px;height:32px;font-size:12px;"><?= $userAvatar ?></span>
+          <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
+            <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
             <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
@@ -152,16 +162,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       </div>
     </header>
 
-    <!-- Mobile header -->
-    <header class="app__header">
-      <button type="button" class="sidebar-toggle" data-sidebar-toggle aria-label="Buka menu" aria-expanded="false" aria-controls="sidebar">
-        <span class="material-symbols-outlined">menu</span>
-      </button>
-      <div class="app__header-title">
-        <span class="app__header-brand">FinanceTrack</span>
-        <span class="app__header-name">Dashboard</span>
-      </div>
-    </header>
+    
 
     <main class="app__main">
 
