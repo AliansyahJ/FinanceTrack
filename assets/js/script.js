@@ -170,7 +170,6 @@
       document.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
           document.body.classList.remove("sidebar-open");
-          document.body.classList.remove("sidebar-collapsed");
           Utils.qsa("[data-sidebar-toggle]").forEach((t) =>
             t.setAttribute("aria-expanded", "false")
           );
@@ -1294,21 +1293,26 @@
           receipt_name: receiptFile ? receiptFile.name : "",
         };
 
+                const submitBtn = Utils.qs("button[type=\"submit\"]");
+        const saveMoreBtn = Utils.qs("[data-save-more]");
+        if (submitBtn) submitBtn.disabled = true;
+        if (saveMoreBtn) saveMoreBtn.disabled = true;
+
         if (this.editingId) {
-          if (window.FinanceTrackAPI && window.location.protocol.startsWith("http")) {
+          if (window.FinanceTrackAPI) {
             try {
               const res = await window.FinanceTrackAPI.updateTransaction(this.editingId, txData, receiptFile);
               if (res && res.data && res.data.struk) {
                 txData.receipt_path = res.data.struk;
               }
             } catch (err) {
-              console.warn("Gagal update transaksi via API:", err);
+              if (submitBtn) submitBtn.disabled = false;
+              if (saveMoreBtn) saveMoreBtn.disabled = false;
+              Feedback.showToast("Gagal", err.message || "Gagal menghubungi server.", "error");
+              return;
             }
           }
-          if (
-            typeof FinanceTrackData !== "undefined" &&
-            FinanceTrackData.updateTransaction
-          ) {
+          if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.updateTransaction) {
             FinanceTrackData.updateTransaction(this.editingId, txData);
           }
           try {
@@ -1316,18 +1320,17 @@
               "ft_toast",
               JSON.stringify({
                 title: "Transaksi diperbarui",
-                message: `"${desc}" berhasil diperbarui.`,
+                message: `"" berhasil diperbarui.`,
                 icon: "check_circle",
               })
             );
           } catch (e) {}
-          const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
-          window.location.href = `transaksi${ext}`;
+          window.location.href = "transaksi.php";
           return;
         }
 
         // Mode Tambah Transaksi Baru
-        if (window.FinanceTrackAPI && window.location.protocol.startsWith("http")) {
+        if (window.FinanceTrackAPI) {
           try {
             const apiRes = await window.FinanceTrackAPI.createTransaction(txData, receiptFile);
             if (apiRes && apiRes.data) {
@@ -1337,15 +1340,18 @@
               }
             }
           } catch (err) {
-            console.warn("Gagal membuat transaksi via API:", err);
+            if (submitBtn) submitBtn.disabled = false;
+            if (saveMoreBtn) saveMoreBtn.disabled = false;
+            Feedback.showToast("Gagal", err.message || "Gagal menghubungi server.", "error");
+            return;
           }
         }
-        if (
-          typeof FinanceTrackData !== "undefined" &&
-          FinanceTrackData.addTransaction
-        ) {
+        if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.addTransaction) {
           FinanceTrackData.addTransaction(txData);
         }
+
+        if (submitBtn) submitBtn.disabled = false;
+        if (saveMoreBtn) saveMoreBtn.disabled = false;
 
         if (addMore) {
           Feedback.showToast(
@@ -1582,7 +1588,7 @@
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
           plugins: {
-            legend: { display: false },
+            legend: { display: true, position: "top" },
             tooltip: {
               ...this.getTooltip(),
               callbacks: {
@@ -1746,7 +1752,7 @@
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
           plugins: {
-            legend: { display: false },
+            legend: { display: true, position: "top" },
             tooltip: {
               ...this.getTooltip(),
               callbacks: {
@@ -1805,7 +1811,7 @@
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { display: false },
+            legend: { display: true, position: "top" },
             tooltip: {
               ...this.getTooltip(),
               callbacks: {
@@ -1945,8 +1951,8 @@
         if (res && res.success && res.data && res.data.user) {
           const u = res.data.user;
           Utils.qsa("[data-user-name]").forEach((el) => { el.textContent = u.nama; });
-          Utils.qsa("[data-user-avatar]").forEach((el) => {
-            el.textContent = u.avatar_initials || (u.nama ? u.nama.slice(0, 2).toUpperCase() : "FP");
+          Utils.qsa(".sidebar__avatar").forEach((el) => {
+            if (u.avatar_url) { el.style.backgroundImage = 'url("' + u.avatar_url + '")'; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center'; el.style.color = 'transparent'; } else { el.textContent = u.avatar_initials || (u.nama ? u.nama.slice(0, 2).toUpperCase() : "FP"); el.style.backgroundImage = 'none'; el.style.color = ''; }
           });
           Utils.qsa("[data-user-role]").forEach((el) => { el.textContent = u.role || "Mahasiswa"; });
           Utils.qsa("[data-user-email]").forEach((el) => { el.textContent = u.email; });
