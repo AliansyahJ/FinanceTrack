@@ -10,7 +10,7 @@ $userId = requireApiAuth();
 
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
 
-$categoryId  = trim($input['kategoriId'] ?? $input['category_id'] ?? '');
+$categoryId  = trim($input['categoryId'] ?? $input['kategoriId'] ?? $input['category_id'] ?? '');
 $amount      = (float)str_replace(['.', ',', 'Rp', ' '], '', $input['batas'] ?? $input['amount'] ?? 0);
 $month       = (int)($input['month'] ?? date('n'));
 $year        = (int)($input['year'] ?? date('Y'));
@@ -19,10 +19,6 @@ $notes       = trim($input['catatan'] ?? $input['notes'] ?? '');
 if (empty($categoryId)) {
     sendJsonResponse(['success' => false, 'message' => 'Kategori anggaran wajib dipilih.'], 400);
 }
-if ($amount <= 0) {
-    sendJsonResponse(['success' => false, 'message' => 'Nominal batas anggaran harus lebih besar dari 0.'], 400);
-}
-
 try {
     $pdo = getDbConnection();
 
@@ -33,6 +29,23 @@ try {
 
     if (!$cat) {
         sendJsonResponse(['success' => false, 'message' => 'Kategori tidak valid.'], 400);
+    }
+
+    if ($amount <= 0) {
+        $del = $pdo->prepare('DELETE FROM budgets WHERE user_id = :user_id AND category_id = :cat_id');
+        $del->execute([':user_id' => $userId, ':cat_id' => $categoryId]);
+
+        sendJsonResponse([
+            'success' => true,
+            'action'  => 'reset',
+            'message' => 'Batas anggaran untuk kategori ' . $cat['name'] . ' berhasil direset (Tanpa Batas).',
+            'data'    => [
+                'kategoriId' => $categoryId,
+                'nama'       => $cat['name'],
+                'batas'      => 0
+            ]
+        ]);
+        exit;
     }
 
     if (empty($notes)) {

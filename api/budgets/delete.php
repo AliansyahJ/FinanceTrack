@@ -8,7 +8,7 @@ require_once __DIR__ . '/../../auth/middleware.php';
 
 $userId = requireApiAuth();
 $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
-$categoryId = trim($input['kategoriId'] ?? $input['category_id'] ?? $_GET['category_id'] ?? '');
+$categoryId = trim($input['categoryId'] ?? $input['kategoriId'] ?? $input['category_id'] ?? $_GET['category_id'] ?? '');
 
 if (empty($categoryId)) {
     sendJsonResponse(['success' => false, 'message' => 'Kategori anggaran wajib diisi.'], 400);
