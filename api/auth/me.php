@@ -16,6 +16,12 @@ if (!$userId) {
 
 $user = getCurrentUser();
 
+$avatarUrl = null;
+$photoPath = '../../uploads/avatars/user_' . $userId . '.jpg';
+if (file_exists(__DIR__ . '/' . $photoPath)) {
+    $avatarUrl = '../uploads/avatars/user_' . $userId . '.jpg?t=' . filemtime(__DIR__ . '/' . $photoPath);
+}
+
 sendJsonResponse([
     'success' => true,
     'authenticated' => true,
@@ -26,7 +32,8 @@ sendJsonResponse([
             'name' => $user['name'],
             'email' => $user['email'],
             'role' => $user['role'],
-            'avatar_initials' => $user['avatar'] ?: 'FP'
+            'avatar_initials' => $user['avatar'] ?: 'FP',
+            'avatar_url' => $avatarUrl
         ]
     ]
 ]);

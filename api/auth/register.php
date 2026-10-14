@@ -19,6 +19,14 @@ if (empty($name) || empty($email) || empty($password)) {
     sendJsonResponse(['success' => false, 'message' => 'Semua kolom wajib diisi.'], 400);
 }
 
+if (mb_strlen($name) < 2 || mb_strlen($name) > 100) {
+    sendJsonResponse(['success' => false, 'message' => 'Nama harus antara 2 hingga 100 karakter.'], 400);
+}
+
+if (!preg_match("/^[\p{L}\s\.,'-]+$/u", $name)) {
+    sendJsonResponse(['success' => false, 'message' => 'Nama hanya boleh berisi huruf, spasi, titik, koma, tanda hubung, atau apostrof.'], 400);
+}
+
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     sendJsonResponse(['success' => false, 'message' => 'Format email tidak valid.'], 400);
 }

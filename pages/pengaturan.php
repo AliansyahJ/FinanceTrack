@@ -3,22 +3,11 @@ require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['name'] ?? $currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
-$userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
+$userAvatar = htmlspecialchars($currentUser['avatar'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
 $userCreatedAt = htmlspecialchars($currentUser['created_at'] ?? '');
-$bootstrapData = getDatabaseBootstrapData((int)$currentUser['id']);
-?>
-<?php
-require_once __DIR__ . '/../auth/middleware.php';
-require_once __DIR__ . '/../database/bootstrap.php';
-requireAuth();
-$currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
-$userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
-$userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
-$userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
 $bootstrapData = getDatabaseBootstrapData((int)$currentUser['id']);
 $summary = $bootstrapData['summary'] ?? [
     'saldo' => 0,
@@ -48,7 +37,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/style.css?v=1791587905545">
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
@@ -85,6 +74,18 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <a class="nav-item" href="anggaran.php">
             <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
             Anggaran
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="kategori.php">
+            <span class="material-symbols-outlined" aria-hidden="true">category</span>
+            Kategori
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="metode-pembayaran.php">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+            Metode Pembayaran
           </a>
         </li>
         <li>
@@ -156,10 +157,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
           <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
             <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
-            <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
+            <span data-user-name style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
-          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:8px;background:var(--surface-container-lowest);border:1px solid var(--surface-container);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:200px;z-index:100;">
+          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" >
             <a href="pengaturan.php" class="topbar-dropdown__item" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--on-surface);text-decoration:none;">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">person</span>
               <span>Profil / Pengaturan</span>
@@ -198,49 +199,48 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <h2 class="section-title" id="profil-heading">Profil Pengguna</h2>
             
 
-            <form class="stack" id="profileForm" novalidate>
-              <div class="row" style="gap:var(--space-md);align-items:center;margin-bottom:var(--space-sm)">
-                <span class="sidebar__avatar" style="width:80px;height:80px;font-size:32px" aria-hidden="true"><?= $userAvatar ?></span>
-                <div>
+            <form id="profileForm" novalidate>
+              <div class="row row--wrap" style="gap:var(--space-xl); align-items:flex-start;">
+                <!-- Kiri: Foto Profil -->
+                <div style="display:flex; flex-direction:column; align-items:center; gap:var(--space-sm); width: 160px; flex-shrink: 0;">
+                  <span class="sidebar__avatar" style="width:120px;height:120px;font-size:48px" aria-hidden="true"><?= $userAvatar ?></span>
                   <input type="file" id="avatarUpload" accept="image/png, image/jpeg, image/jpg" style="display:none">
-                  <button type="button" class="btn btn--secondary btn--sm" data-avatar onclick="document.getElementById('avatarUpload').click()">
+                  <button type="button" class="btn btn--secondary btn--sm" data-avatar onclick="document.getElementById('avatarUpload').click()" style="width:100%; justify-content:center;">
                     <span class="material-symbols-outlined icon-sm" aria-hidden="true">photo_camera</span>
                     Ubah Foto
                   </button>
-                  <p class="text-secondary" style="font-size:var(--text-xs);margin:var(--space-xs) 0 0">
-                    Maksimal 1&nbsp;MB, format JPG atau PNG.
+                  <button type="button" class="btn btn--ghost btn--sm text-danger" id="btnDeleteAvatar" style="width:100%; justify-content:center; padding:4px 8px; font-size:var(--text-xs);">
+                    <span class="material-symbols-outlined icon-sm" aria-hidden="true">delete</span>
+                    Hapus Foto
+                  </button>
+                  <p class="text-secondary" style="font-size:var(--text-xs); text-align:center; margin:0;">
+                    Maks. 5MB (JPG/PNG)
                   </p>
                 </div>
-              </div>
 
-              <div class="grid grid--2">
-                <div class="field">
-                  <label class="field__label" for="set-name">Nama Lengkap</label>
-                  <input type="text" class="input" id="set-name" name="nama" value="<?= $userName ?>" autocomplete="name">
-                </div>
-                <div class="field">
-                  <label class="field__label" for="set-email">Email</label>
-                  <input type="email" class="input" id="set-email" name="email" value="<?= $userEmail ?>" autocomplete="email">
-                </div>
-              </div>
+                <!-- Kanan: Form Edit -->
+                <div style="flex: 1; min-width: 250px;" class="stack">
+                  <div class="field">
+                    <label class="field__label" for="set-name">Nama Lengkap</label>
+                    <input type="text" class="input" id="set-name" name="nama" value="<?= $userName ?>" autocomplete="name">
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="set-email">Email</label>
+                    <input type="email" class="input" id="set-email" name="email" value="<?= $userEmail ?>" autocomplete="email">
+                  </div>
+                  <div class="field">
+                    <label class="field__label" for="set-created">Tanggal Bergabung</label>
+                    <input type="text" class="input" id="set-created" name="created" value="<?= $userCreatedAt ? date('d M Y', strtotime($userCreatedAt)) : 'Tidak diketahui' ?>" disabled style="background-color: var(--surface-alt); cursor: not-allowed; color: var(--text-secondary);">
+                  </div>
 
-              <div class="grid grid--2">
-                <div class="field">
-                  <label class="field__label" for="set-role">Peran</label>
-                  <input type="text" class="input" id="set-role" name="peran" value="<?= ucfirst($userRole) ?>" disabled style="background-color: var(--surface-alt); cursor: not-allowed; color: var(--text-secondary);">
+                  <div class="row" style="gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-md)">
+                    <button type="button" class="btn btn--secondary" data-reset-profile>Reset</button>
+                    <button type="submit" class="btn btn--primary">
+                      <span class="material-symbols-outlined icon-sm" aria-hidden="true">check</span>
+                      Simpan Profil
+                    </button>
+                  </div>
                 </div>
-                <div class="field">
-                  <label class="field__label" for="set-created">Tanggal Bergabung</label>
-                  <input type="text" class="input" id="set-created" name="created" value="<?= $userCreatedAt ? date('d M Y', strtotime($userCreatedAt)) : 'Tidak diketahui' ?>" disabled style="background-color: var(--surface-alt); cursor: not-allowed; color: var(--text-secondary);">
-                </div>
-              </div>
-
-              <div class="row" style="gap:var(--space-sm);justify-content:flex-end">
-                <button type="button" class="btn btn--secondary" data-reset-profile>Reset</button>
-                <button type="submit" class="btn btn--primary">
-                  <span class="material-symbols-outlined icon-sm" aria-hidden="true">check</span>
-                  Simpan Perubahan
-                </button>
               </div>
             </form>
           </section>
@@ -320,22 +320,49 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             </div>
           </section>
 
-          <!-- Kategori -->
-          <section class="card card--pad" aria-labelledby="kategori-set-heading">
-            <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
-              <div>
-                <h2 class="section-title" id="kategori-set-heading">Kategori Transaksi</h2>
-                <p class="page-subtitle">Kategori yang dipakai pada form &amp; filter.</p>
+          <!-- Pintasan Master Data -->
+          <section class="card card--pad" aria-labelledby="master-data-heading">
+            <h2 class="section-title" id="master-data-heading">Pintasan Master Data</h2>
+            <p class="page-subtitle" style="margin-bottom:var(--space-md)">
+              Kelola kategori transaksi dan metode pembayaran di halaman tersendiri.
+            </p>
+            <div class="grid grid--2" style="gap:var(--space-md)">
+              <!-- Card Pintasan Kategori -->
+              <div style="background:var(--surface-container-low);border:1px solid var(--surface-container);border-radius:var(--radius-lg);padding:var(--space-md);display:flex;flex-direction:column;justify-content:space-between;gap:var(--space-sm)">
+                <div class="d-flex align-items-center" style="gap:var(--space-sm)">
+                  <span class="icon-box icon-box--primary" style="width:40px;height:40px;border-radius:var(--radius-md);display:grid;place-items:center" aria-hidden="true">
+                    <span class="material-symbols-outlined icon-sm">category</span>
+                  </span>
+                  <div>
+                    <h3 style="font-size:var(--text-md);font-weight:600;margin:0">Kategori Transaksi</h3>
+                    <p class="text-secondary" style="font-size:var(--text-xs);margin:0" id="shortcut-cat-count"><?= count($bootstrapData['categories'] ?? []) ?> kategori aktif</p>
+                  </div>
+                </div>
+                <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Atur pos pengeluaran &amp; pemasukan, sesuaikan ikon, dan warna tanda.</p>
+                <a href="kategori.php" class="btn btn--secondary btn--sm" style="margin-top:var(--space-xs);justify-content:center;text-decoration:none">
+                  <span>Kelola Kategori</span>
+                  <span class="material-symbols-outlined icon-xs">arrow_forward</span>
+                </a>
               </div>
-              <div class="row">
-                <span class="badge badge--muted" id="category-count"></span>
-                <button type="button" class="btn btn--primary btn--sm" data-add-category>
-                  <span class="material-symbols-outlined icon-sm" aria-hidden="true">add</span>
-                  Tambah
-                </button>
+
+              <!-- Card Pintasan Metode Pembayaran -->
+              <div style="background:var(--surface-container-low);border:1px solid var(--surface-container);border-radius:var(--radius-lg);padding:var(--space-md);display:flex;flex-direction:column;justify-content:space-between;gap:var(--space-sm)">
+                <div class="d-flex align-items-center" style="gap:var(--space-sm)">
+                  <span class="icon-box icon-box--success" style="width:40px;height:40px;border-radius:var(--radius-md);display:grid;place-items:center" aria-hidden="true">
+                    <span class="material-symbols-outlined icon-sm">payments</span>
+                  </span>
+                  <div>
+                    <h3 style="font-size:var(--text-md);font-weight:600;margin:0">Metode Pembayaran</h3>
+                    <p class="text-secondary" style="font-size:var(--text-xs);margin:0" id="shortcut-method-count"><?= count($bootstrapData['paymentMethods'] ?? []) ?> metode aktif</p>
+                  </div>
+                </div>
+                <p class="text-secondary" style="font-size:var(--text-xs);margin:0">Atur akun dompet digital (GoPay, OVO, DANA), bank, atau tunai.</p>
+                <a href="metode-pembayaran.php" class="btn btn--secondary btn--sm" style="margin-top:var(--space-xs);justify-content:center;text-decoration:none">
+                  <span>Kelola Metode Bayar</span>
+                  <span class="material-symbols-outlined icon-xs">arrow_forward</span>
+                </a>
               </div>
             </div>
-            <div id="category-list"></div>
           </section>
 
           <!-- Data -->
@@ -373,6 +400,12 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <h2 class="section-title" id="metode-heading">Metode Pembayaran</h2>
             <p class="page-subtitle" style="margin-bottom:var(--space-md)">Dompet &amp; tunnel yang tersedia.</p>
             <div class="row row--wrap" id="method-list" style="gap:var(--space-xs)"></div>
+            <div style="margin-top:var(--space-md)">
+              <a href="metode-pembayaran.php" class="btn btn--secondary btn--sm" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;font-size:var(--text-xs)">
+                <span class="material-symbols-outlined icon-xs">edit</span>
+                <span>Kelola &amp; Edit Metode</span>
+              </a>
+            </div>
           </section>
 
           <section class="card card--pad" aria-labelledby="tentang-heading">
@@ -457,52 +490,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     </div>
   </div>
 
-  <div class="modal" id="modal-category" role="dialog" aria-modal="true" aria-labelledby="cat-modal-title">
-    <div class="modal__dialog">
-      <h2 class="modal__title" id="cat-modal-title">Kategori</h2>
-      <form id="cat-form" class="stack" style="margin-top:var(--space-md)">
-        <input type="hidden" id="cat-id" name="id">
-        <div class="field">
-            <label class="field__label" for="cat-name">Nama Kategori</label>
-            <input type="text" class="input" id="cat-name" name="name" required>
-        </div>
-                <div class="grid grid--2">
-            <div class="field">
-                <label class="field__label" for="cat-type">Jenis</label>
-                <select class="select" id="cat-type" name="type">
-                    <option value="expense">Pengeluaran</option>
-                    <option value="income">Pemasukan</option>
-                </select>
-            </div>
-            <div class="field">
-                <label class="field__label" for="cat-color">Warna</label>
-                <input type="color" class="input" id="cat-color" name="color" value="#0284c7" style="height:42px;padding:4px;cursor:pointer">
-            </div>
-        </div>
-        <div class="field">
-            <label class="field__label">Ikon Kategori</label>
-            <input type="hidden" id="cat-icon" name="icon" value="category" required>
-            <div class="icon-picker" style="border:1px solid var(--border);border-radius:var(--radius-md);padding:var(--space-xs);background:var(--surface);">
-                <div style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-xs);align-items:center;">
-                    <div style="width:36px;height:36px;background:var(--surface-alt);border-radius:var(--radius-sm);display:grid;place-items:center;border:1px solid var(--border);flex-shrink:0;" id="preview-bg">
-                        <span class="material-symbols-outlined icon-sm" id="selected-icon-preview" style="color:var(--text)">category</span>
-                    </div>
-                    <div style="flex:1;position:relative;">
-                        <span class="material-symbols-outlined icon-sm" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;font-size:16px;">search</span>
-                        <input type="text" id="icon-search" class="input" placeholder="Cari ikon..." style="width:100%;min-height:36px;padding:4px 8px 4px 32px;font-size:var(--text-sm);" autocomplete="off">
-                    </div>
-                </div>
-                <div id="icon-grid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(36px,1fr));gap:4px;max-height:120px;overflow-y:auto;padding:2px;">
-                </div>
-            </div>
-        </div>
-        <div class="modal__actions" style="margin-top:var(--space-md)">
-            <button type="button" class="btn btn--secondary" data-cat-close>Batal</button>
-            <button type="submit" class="btn btn--primary">Simpan</button>
-        </div>
-      </form>
-    </div>
-  </div>
+
 
   <div class="toast" data-toast role="status" aria-live="polite">
     <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
@@ -515,7 +503,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
   <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/script.js?v=1791587905545"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var D = FinanceTrackData;
@@ -523,212 +511,13 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       var esc = U.escapeHtml;
       var F = FinanceTrack.Feedback;
 
-      /* --- Daftar kategori --- */
-      function renderCategories() {
-        var income = D.incomeCategories().length;
-        var expense = D.expenseCategories().length;
-
-        document.getElementById("category-count").textContent =
-          expense + " pengeluaran · " + income + " pemasukan";
-
-        document.getElementById("category-list").innerHTML =
-          '<div class="table-wrap">' +
-          '<table class="table">' +
-            '<caption class="visually-hidden">Daftar kategori transaksi bawaan</caption>' +
-            '<thead><tr><th scope="col">Kategori</th><th scope="col">Jenis</th><th scope="col">Status</th><th scope="col" style="text-align:right">Aksi</th></tr></thead>' +
-            '<tbody>' +
-              D.categories.map(function (c) {
-                var isIncome = c.tipe === "income";
-                var hasBudget = D.budgets.some(function (b) { return b.kategoriId === c.id; });
-                return '<tr>' +
-                  '<td><div class="cell-identity">' +
-                    '<span class="cell-icon" aria-hidden="true" style="background-color: '+esc(c.warna)+'20; color: '+esc(c.warna)+'">' +
-                      '<span class="material-symbols-outlined icon-sm">' + esc(c.icon) + '</span></span>' +
-                    '<div class="cell-identity__text">' +
-                      '<span class="cell-identity__title">' + esc(c.nama) + '</span>' +
-                    '</div></div></td>' +
-                  '<td><span class="badge ' + (isIncome ? "badge--income" : "badge--expense") + '">' +
-                    (isIncome ? "Pemasukan" : "Pengeluaran") + '</span></td>' +
-                  '<td>' + (hasBudget
-                    ? '<span class="badge badge--primary">Ada anggaran</span>'
-                    : '<span class="badge badge--muted">Tanpa batas</span>') + '</td>' +
-                  '<td style="text-align:right;white-space:nowrap">' +
-                    '<button type="button" class="btn btn--icon btn--ghost" data-edit-cat="'+esc(c.id)+'" aria-label="Edit Kategori"><span class="material-symbols-outlined icon-sm">edit</span></button>' +
-                    '<button type="button" class="btn btn--icon btn--ghost text-danger" data-delete-cat="'+esc(c.id)+'" aria-label="Hapus Kategori"><span class="material-symbols-outlined icon-sm">delete</span></button>' +
-                  '</td>' +
-                '</tr>';
-              }).join("") +
-            '</tbody>' +
-          '</table></div>';
+      /* --- Update Pintasan Kategori --- */
+      var shortcutCatCount = document.getElementById("shortcut-cat-count");
+      if (shortcutCatCount) {
+        var exp = D.categories.filter(function(c) { return c.tipe === "expense"; }).length;
+        var inc = D.categories.filter(function(c) { return c.tipe === "income"; }).length;
+        shortcutCatCount.textContent = D.categories.length + " kategori (" + exp + " pengeluaran · " + inc + " pemasukan)";
       }
-      renderCategories();
-
-      /* --- Logika Kategori (Tambah, Edit, Hapus) --- */
-              var catModal = document.getElementById("modal-category");
-        var catForm = document.getElementById("cat-form");
-        
-        var CAT_ICONS = ["category","home","shopping_cart","fastfood","restaurant","local_cafe","directions_car","local_gas_station","flight","build","favorite","medical_services","school","pets","fitness_center","movie","sports_esports","receipt_long","payments","attach_money","trending_up","trending_down","savings","redeem","volunteer_activism","account_balance","account_balance_wallet","credit_card","shopping_bag","store","work","health_and_safety","celebration","checkroom","face","child_care","stroller","train","two_wheeler","local_shipping"];
-        var iGrid = document.getElementById("icon-grid");
-        var iSearch = document.getElementById("icon-search");
-        var iInput = document.getElementById("cat-icon");
-        var iPreview = document.getElementById("selected-icon-preview");
-        var iBg = document.getElementById("preview-bg");
-        var cInput = document.getElementById("cat-color");
-        
-        function renderIconPicker(filter = "") {
-            if(!iGrid) return;
-            iGrid.innerHTML = "";
-            var search = filter.toLowerCase();
-            CAT_ICONS.forEach(function(icon) {
-                if (icon.indexOf(search) === -1) return;
-                var btn = document.createElement("button");
-                btn.type = "button";
-                var isActive = (iInput.value === icon);
-                btn.innerHTML = '<span class="material-symbols-outlined icon-sm" style="pointer-events:none">' + icon + '</span>';
-                btn.style.cssText = 'width:36px;height:36px;border-radius:var(--radius-sm);border:1px solid transparent;background:transparent;cursor:pointer;display:grid;place-items:center;color:var(--text-secondary);transition:all 0.2s;';
-                if (isActive) {
-                    btn.style.background = cInput.value + "20";
-                    btn.style.color = cInput.value;
-                    btn.style.borderColor = cInput.value;
-                }
-                btn.title = icon;
-                btn.onclick = function() {
-                    iInput.value = icon;
-                    updateIconPreview();
-                };
-                iGrid.appendChild(btn);
-            });
-        }
-        
-        function updateIconPreview() {
-            if(!iPreview) return;
-            iPreview.textContent = iInput.value;
-            iPreview.style.color = cInput.value;
-            iBg.style.background = cInput.value + "20";
-            renderIconPicker(iSearch ? iSearch.value : "");
-        }
-        
-        if (iSearch) iSearch.addEventListener("input", function(e) { renderIconPicker(e.target.value); });
-        if (cInput) cInput.addEventListener("input", updateIconPreview);
-
-        function openCatModal(id) {
-          catForm.reset();
-        if (id) {
-              var cat = D.categories.find(function(c) { return String(c.id) === String(id); });
-            if (cat) {
-                                document.getElementById("cat-modal-title").textContent = "Edit Kategori";
-                document.getElementById("cat-id").value = cat.id;
-                document.getElementById("cat-name").value = cat.nama;
-                document.getElementById("cat-type").value = cat.tipe;
-                document.getElementById("cat-icon").value = cat.icon;
-                document.getElementById("cat-color").value = cat.warna;
-            }
-        } else {
-            document.getElementById("cat-modal-title").textContent = "Tambah Kategori";
-            document.getElementById("cat-id").value = "";
-            document.getElementById("cat-icon").value = "category";
-            document.getElementById("cat-color").value = "#0284c7";
-            if(iSearch) iSearch.value = "";
-        }
-        updateIconPreview();
-        catModal.classList.add("is-open");
-      }
-
-      function closeCatModal() {
-        catModal.classList.remove("is-open");
-      }
-
-      document.querySelector("[data-add-category]").addEventListener("click", function() { openCatModal(); });
-      document.querySelector("[data-cat-close]").addEventListener("click", function() { closeCatModal(); });
-
-      document.getElementById("category-list").addEventListener("click", function(e) {
-        var btnEdit = e.target.closest("[data-edit-cat]");
-        if (btnEdit) {
-            openCatModal(btnEdit.getAttribute("data-edit-cat"));
-        }
-        var btnDelete = e.target.closest("[data-delete-cat]");
-        if (btnDelete) {
-            var id = btnDelete.getAttribute("data-delete-cat");
-            F.openModal({
-                title: "Hapus Kategori?",
-                message: "Kategori akan dihapus permanen. Tindakan ini tidak dapat dibatalkan.",
-                confirmText: "Hapus",
-                onConfirm: function() {
-                    var formData = new FormData();
-                    formData.append("id", id);
-                    fetch("../api/categories/delete.php", {
-                        method: "POST",
-                        body: formData
-                    })
-                    .then(function(res) { return res.json(); })
-                    .then(function(res) {
-                        if (res.success) {
-                            F.showToast("Berhasil", res.message, "check_circle");
-                            var idx = D.categories.findIndex(function(c) { return String(c.id) === String(id); });
-                            if (idx > -1) D.categories.splice(idx, 1);
-                            renderCategories();
-                        } else {
-                            F.showToast("Gagal", res.message, "error");
-                        }
-                    }).catch(function(err) {
-                        console.error(err);
-                        F.showToast("Error", "Gagal menghubungi server.", "error");
-                    });
-                }
-            });
-        }
-      });
-
-      catForm.addEventListener("submit", function(e) {
-        e.preventDefault();
-        var id = document.getElementById("cat-id").value;
-        var name = document.getElementById("cat-name").value;
-        var type = document.getElementById("cat-type").value;
-        var icon = document.getElementById("cat-icon").value;
-        var color = document.getElementById("cat-color").value;
-
-        var url = id ? "../api/categories/update.php" : "../api/categories/create.php";
-        var formData = new FormData();
-        if (id) formData.append("id", id);
-        formData.append("name", name);
-        formData.append("type", type);
-        formData.append("icon", icon);
-        formData.append("color", color);
-
-        var btn = catForm.querySelector("button[type=submit]");
-        var oldText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = "Menyimpan...";
-
-        fetch(url, {
-            method: "POST",
-            body: formData
-        })
-        .then(function(res) { return res.json(); })
-        .then(function(res) {
-            btn.disabled = false;
-            btn.textContent = oldText;
-            if (res.success) {
-                F.showToast("Berhasil", res.message, "check_circle");
-                if (id) {
-                    var idx = D.categories.findIndex(function(c) { return String(c.id) === String(id); });
-                    if (idx > -1) D.categories[idx] = res.data;
-                } else {
-                    D.categories.push(res.data);
-                }
-                D.categories.sort(function(a,b) { return a.nama.localeCompare(b.nama); });
-                renderCategories();
-                closeCatModal();
-            } else {
-                F.showToast("Gagal", res.message, "error");
-            }
-        }).catch(function(err) {
-            btn.disabled = false;
-            btn.textContent = oldText;
-            console.error(err);
-            F.showToast("Error", "Gagal menyimpan kategori.", "error");
-        });
-      });
 
       /* --- Metode pembayaran --- */
       document.getElementById("method-list").innerHTML = D.paymentMethods
@@ -772,6 +561,13 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
                 F.showToast("Profil disimpan", res.message, "check_circle");
                 U.qsa("[data-user-name]").forEach(function(el) { el.textContent = res.data.nama; });
                 U.qsa("[data-user-email]").forEach(function(el) { el.textContent = res.data.email; });
+                if (res.data.avatar_initials) {
+                    U.qsa(".sidebar__avatar").forEach(function(el) {
+                        if (el.style.backgroundImage === 'none' || !el.style.backgroundImage || el.style.backgroundImage === 'initial') {
+                            el.textContent = res.data.avatar_initials;
+                        }
+                    });
+                }
             } else {
                 F.showToast("Gagal", res.message, "error");
             }
@@ -795,8 +591,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           var file = e.target.files[0];
           if (!file) return;
 
-          if (file.size > 1048576) {
-            F.showToast("Gagal", "Ukuran foto melebihi 1MB.", "error");
+          if (file.size > 5242880) {
+            F.showToast("Gagal", "Ukuran foto melebihi 5MB.", "error");
             e.target.value = '';
             return;
           }
@@ -842,6 +638,40 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         });
       }
 
+      /* --- Hapus Foto Profil --- */
+      var btnDelAvatar = document.getElementById("btnDeleteAvatar");
+      if (btnDelAvatar) {
+        btnDelAvatar.addEventListener("click", function() {
+          F.openModal({
+            title: "Hapus Foto Profil?",
+            message: "Foto profil kustom akan dihapus dan avatar Anda akan kembali ke inisial nama bawaan.",
+            confirmText: "Hapus Foto",
+            onConfirm: function() {
+              fetch("../api/auth/delete_avatar.php", {
+                method: "POST"
+              })
+              .then(function(res) { return res.json(); })
+              .then(function(res) {
+                if (res.success) {
+                  F.showToast("Foto Dihapus", res.message, "check_circle");
+                  U.qsa(".sidebar__avatar").forEach(function(el) {
+                    el.style.backgroundImage = 'none';
+                    el.style.color = '';
+                    if (res.avatar_initials) el.textContent = res.avatar_initials;
+                  });
+                } else {
+                  F.showToast("Gagal", res.message, "error");
+                }
+              })
+              .catch(function(err) {
+                console.error(err);
+                F.showToast("Error", "Gagal menghapus foto profil.", "error");
+              });
+            }
+          });
+        });
+      }
+
       /* --- Ekspor nyata --- */
       var exportBtn = document.querySelector("[data-export]");
       if (exportBtn) {
@@ -874,26 +704,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     });
   </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const userMenuBtn = document.querySelector('[data-user-menu-trigger]');
-    const userMenuDropdown = document.querySelector('[data-user-menu-dropdown]');
-    if (userMenuBtn && userMenuDropdown) {
-      userMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = userMenuBtn.getAttribute('aria-expanded') === 'true';
-        userMenuBtn.setAttribute('aria-expanded', !isExpanded);
-        userMenuDropdown.style.display = isExpanded ? 'none' : 'block';
-      });
-      document.addEventListener('click', (e) => {
-        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-          userMenuBtn.setAttribute('aria-expanded', 'false');
-          userMenuDropdown.style.display = 'none';
-        }
-      });
-    }
-  });
-</script>
+
 </body>
 </html>
 

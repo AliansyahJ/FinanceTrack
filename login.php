@@ -13,6 +13,8 @@ if (getCurrentUserId()) {
 
 $error = $_SESSION['auth_error'] ?? null;
 unset($_SESSION['auth_error']);
+$success = $_SESSION['auth_success'] ?? null;
+unset($_SESSION['auth_success']);
 $isRegister = (isset($_GET['action']) && $_GET['action'] === 'register');
 ?>
 <!DOCTYPE html>
@@ -101,6 +103,9 @@ $isRegister = (isset($_GET['action']) && $_GET['action'] === 'register');
       justify-content: space-between;
       gap: var(--space-sm);
     }
+  
+    .spinner { animation: spin 1s linear infinite; }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
   </style>
 </head>
 <body class="auth-page">
@@ -124,11 +129,34 @@ $isRegister = (isset($_GET['action']) && $_GET['action'] === 'register');
       <a href="login.php?action=register" class="auth-tab <?= $isRegister ? 'is-active' : '' ?>">Daftar</a>
     </div>
 
-    <?php if ($error): ?>
-      <div class="callout callout--danger" style="margin-bottom:var(--space-lg);padding:var(--space-sm) var(--space-md)">
-        <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">error</span>
-        <div style="font-size:var(--text-sm)"><?= htmlspecialchars($error) ?></div>
+    <?php if ($success): ?>
+      <div class="toast toast--success is-visible" data-toast role="status" aria-live="polite">
+        <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
+        <div>
+          <p class="toast__title" data-toast-title>Berhasil</p>
+          <p class="toast__message" data-toast-message><?= htmlspecialchars($success) ?></p>
+        </div>
+        <button type="button" class="btn btn--icon btn--ghost" data-toast-close aria-label="Tutup notifikasi">
+          <span class="material-symbols-outlined icon-sm">close</span>
+        </button>
       </div>
+    <?php endif; ?>
+
+    <?php if ($error): ?>
+      <script>
+        document.addEventListener("DOMContentLoaded", function() {
+          var toast = document.querySelector(".toast");
+          if (toast) {
+            toast.querySelector(".toast__title").textContent = "Gagal";
+            toast.querySelector(".toast__message").textContent = <?= json_encode($error) ?>;
+            toast.querySelector(".toast__icon").textContent = "error";
+            toast.className = "toast toast--error is-visible";
+            setTimeout(function() {
+              toast.classList.remove("is-visible");
+            }, 4000);
+          }
+        });
+      </script>
     <?php endif; ?>
 
     <?php if (!$isRegister): ?>
@@ -159,8 +187,8 @@ $isRegister = (isset($_GET['action']) && $_GET['action'] === 'register');
           </div>
           <div class="input-group">
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">lock</span>
-            <input type="password" name="password" id="loginPass" class="input" required autocomplete="current-password" placeholder="••••••••">
-            <button type="button" class="btn btn--ghost btn--icon" id="toggleLoginPass" aria-label="Lihat kata sandi" style="padding:0 var(--space-xs)">
+            <input type="password" name="password" id="loginPass" class="input" required autocomplete="current-password" placeholder="••••••••" style="padding-right: 2.5rem;">
+            <button type="button" class="btn btn--ghost btn--icon" id="toggleLoginPass" aria-label="Lihat kata sandi" style="position:absolute; right:0.25rem; z-index:10; padding:0.25rem; margin:0; height:auto; min-height:auto; display:flex; align-items:center; justify-content:center;">
               <span class="material-symbols-outlined icon-sm">visibility</span>
             </button>
           </div>
@@ -253,8 +281,65 @@ $isRegister = (isset($_GET['action']) && $_GET['action'] === 'register');
           }
         });
       }
+    
+      // Pencegahan double-submit dan efek loading
+      ['loginForm', 'registerForm'].forEach(function(id) {
+        var form = document.getElementById(id);
+        if (form) {
+          form.addEventListener('submit', function() {
+            var btn = form.querySelector('button[type="submit"]');
+            if (btn) {
+              btn.disabled = true;
+              btn.style.opacity = '0.7';
+              btn.style.cursor = 'wait';
+              btn.innerHTML = '<span class="material-symbols-outlined icon-sm spinner" aria-hidden="true">sync</span> Memproses...';
+            }
+          });
+        }
+      });
+
+      // Custom HTML5 Validation Toast (Standalone)
+      document.addEventListener('invalid', function(e) {
+        e.preventDefault();
+        var toast = document.querySelector('.toast');
+        if (toast) {
+          toast.querySelector('.toast__title').textContent = 'Validasi Gagal';
+          toast.querySelector('.toast__message').textContent = 'Harap isi kolom ini dengan benar.';
+          toast.querySelector('.toast__icon').textContent = 'error';
+          toast.className = 'toast toast--error is-visible';
+          setTimeout(function() {
+            toast.classList.remove('is-visible');
+          }, 3000);
+        }
+        try { e.target.focus(); } catch(err) {}
+      }, true);
+      
+      // Close toast button
+      var toastClose = document.querySelector('[data-toast-close]');
+      if (toastClose) {
+        toastClose.addEventListener('click', function() {
+          var toast = document.querySelector('.toast');
+          if (toast) toast.classList.remove('is-visible');
+        });
+      }
     });
   </script>
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" data-toast role="status" aria-live="polite">
+    <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
+    <div>
+      <p class="toast__title" data-toast-title></p>
+      <p class="toast__message" data-toast-message></p>
+    </div>
+    <button type="button" class="btn btn--icon btn--ghost" data-toast-close aria-label="Tutup notifikasi">
+      <span class="material-symbols-outlined icon-sm">close</span>
+    </button>
+  </div>
 </body>
 </html>
+
+
+
+
+
 

@@ -16,8 +16,20 @@ $password = $_POST['password'] ?? '';
 $confirmPassword = $_POST['confirm_password'] ?? '';
 
 if (empty($name) || empty($email) || empty($password)) {
-    $_SESSION['auth_error'] = 'Semua kolom wajib diisi.';
-    header('Location: ../login.php?action=register');
+    $_SESSION["auth_error"] = "Semua kolom wajib diisi.";
+    header("Location: ../login.php?action=register");
+    exit;
+}
+
+if (mb_strlen($name) < 2 || mb_strlen($name) > 100) {
+    $_SESSION["auth_error"] = "Nama harus antara 2 hingga 100 karakter.";
+    header("Location: ../login.php?action=register");
+    exit;
+}
+
+if (!preg_match("/^[\p{L}\s\.,'-]+$/u", $name)) {
+    $_SESSION["auth_error"] = "Nama hanya boleh berisi huruf, spasi, titik, koma, tanda hubung, atau apostrof.";
+    header("Location: ../login.php?action=register");
     exit;
 }
 
@@ -79,6 +91,7 @@ try {
     $_SESSION['user_role'] = 'user';
     $_SESSION['user_avatar'] = $avatar;
     unset($_SESSION['auth_error']);
+    $_SESSION['auth_success'] = 'Pendaftaran akun berhasil.';
 
     header('Location: ../pages/dashboard.php');
     exit;

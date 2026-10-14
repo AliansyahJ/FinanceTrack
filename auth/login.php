@@ -35,6 +35,7 @@ try {
         $_SESSION['user_role'] = $user['role'];
         $_SESSION['user_avatar'] = $user['avatar'] ?: 'FP';
         unset($_SESSION['auth_error']);
+        $_SESSION['auth_success'] = 'Berhasil masuk ke akun Anda.';
 
         header('Location: ../pages/dashboard.php');
         exit;
@@ -54,6 +55,7 @@ try {
         $_SESSION['user_role'] = 'user';
         $_SESSION['user_avatar'] = 'FP';
         unset($_SESSION['auth_error']);
+        $_SESSION['auth_success'] = 'Berhasil masuk ke akun demo.';
 
         header('Location: ../pages/dashboard.php');
         exit;
