@@ -35,6 +35,9 @@ build/
 *.log
 
 # Project specific - excluded per user request
+AGENTS.md
+PERANCANGAN.md
+scripts/
 plan.md
 stitch_financetrack_app_wireframes/
 docs/archive_milestone2/
