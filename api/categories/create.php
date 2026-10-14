@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../../auth/middleware.php';
 requireApiAuth();
 
@@ -17,6 +17,9 @@ $color = trim($_POST['color'] ?? '#0284c7');
 
 if (empty($name) || !in_array($type, ['expense', 'income'])) {
     sendJsonResponse(['success' => false, 'message' => 'Data tidak valid.'], 400);
+}
+if (!preg_match("/^[\p{L}\s&]+$/u", $name)) {
+    sendJsonResponse(['success' => false, 'message' => 'Nama kategori hanya boleh berisi huruf dan spasi.'], 400);
 }
 
 $id = uniqid('cat_');

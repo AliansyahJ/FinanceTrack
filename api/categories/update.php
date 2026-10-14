@@ -19,6 +19,9 @@ $color = trim($_POST['color'] ?? '#0284c7');
 if (empty($id) || empty($name) || !in_array($type, ['expense', 'income'])) {
     sendJsonResponse(['success' => false, 'message' => 'Data tidak valid.'], 400);
 }
+if (!preg_match("/^[\p{L}\s&]+$/u", $name)) {
+    sendJsonResponse(['success' => false, 'message' => 'Nama kategori hanya boleh berisi huruf dan spasi.'], 400);
+}
 
 try {
     $pdo = getDbConnection();

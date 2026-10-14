@@ -38,6 +38,9 @@ if ($id <= 0) {
 if ($amount <= 0 || empty($description) || empty($categoryId) || empty($paymentMethod)) {
     sendJsonResponse(['success' => false, 'message' => 'Harap lengkapi seluruh kolom wajib.'], 400);
 }
+if (!preg_match("/^[\p{L}\s]+$/u", $description)) {
+    sendJsonResponse(['success' => false, 'message' => 'Deskripsi transaksi hanya boleh berisi huruf dan spasi.'], 400);
+}
 if (mb_strlen($description) > 100) {
     sendJsonResponse(['success' => false, 'message' => 'Deskripsi maksimal 100 karakter.'], 400);
 }
@@ -126,6 +129,40 @@ try {
         ':user_id'     => $userId
     ]);
 
+    // Periksa apakah transaksi pengeluaran ini melampaui batas anggaran
+    $budgetAlert = null;
+    if ($type === 'expense') {
+        $txMonth = (int)date('n', strtotime($transactionDate));
+        $txYear  = (int)date('Y', strtotime($transactionDate));
+
+        $bStmt = $pdo->prepare('SELECT id, amount FROM budgets WHERE user_id = :uid AND category_id = :cid AND period_month = :m AND period_year = :y LIMIT 1');
+        $bStmt->execute([':uid' => $userId, ':cid' => $categoryId, ':m' => $txMonth, ':y' => $txYear]);
+        $bRow = $bStmt->fetch();
+
+        if ($bRow && (float)$bRow['amount'] > 0) {
+            $sumStmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM transactions 
+                                      WHERE user_id = :uid AND category_id = :cid AND type = 'expense'
+                                      AND MONTH(transaction_date) = :m AND YEAR(transaction_date) = :y");
+            $sumStmt->execute([':uid' => $userId, ':cid' => $categoryId, ':m' => $txMonth, ':y' => $txYear]);
+            $totalSpent = (float)$sumStmt->fetchColumn();
+
+            if ($totalSpent >= (float)$bRow['amount']) {
+                $checkCat = $pdo->prepare('SELECT name, icon FROM categories WHERE id = :id LIMIT 1');
+                $checkCat->execute([':id' => $categoryId]);
+                $cData = $checkCat->fetch();
+                $budgetAlert = [
+                    'kategoriId' => $categoryId,
+                    'nama'       => $cData['name'] ?? $categoryId,
+                    'icon'       => $cData['icon'] ?? 'category',
+                    'terpakai'   => $totalSpent,
+                    'batas'      => (float)$bRow['amount'],
+                    'persen'     => round(($totalSpent / (float)$bRow['amount']) * 100),
+                    'isOver'     => true
+                ];
+            }
+        }
+    }
+
     sendJsonResponse([
         'success' => true,
         'message' => 'Transaksi berhasil diperbarui.',
@@ -139,7 +176,8 @@ try {
             'tipe' => $type,
             'jumlah' => $amount,
             'catatan' => $notes,
-            'struk' => $receiptPath
+            'struk' => $receiptPath,
+            'budgetAlert' => $budgetAlert
         ]
     ]);
 

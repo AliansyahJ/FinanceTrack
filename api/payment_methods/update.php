@@ -24,6 +24,9 @@ $color = trim($input['color'] ?? $input['warna'] ?? '#0284c7');
 if (empty($id) || empty($name)) {
     sendJsonResponse(['success' => false, 'message' => 'ID dan Nama metode pembayaran wajib diisi.'], 400);
 }
+if (!preg_match("/^[\p{L}0-9\s\.\-]+$/u", $name)) {
+    sendJsonResponse(['success' => false, 'message' => 'Nama metode pembayaran hanya boleh berisi huruf, angka, dan spasi.'], 400);
+}
 
 $validTypes = ['cash', 'ewallet', 'bank', 'other'];
 if (!in_array($type, $validTypes)) {

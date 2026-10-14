@@ -275,7 +275,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
                   <input type="text" class="input" id="field-desc" data-field-desc maxlength="100"
                          placeholder="Contoh: Makan siang warteg, Beli modul kuliah">
                 </div>
-                <p class="field__error">Deskripsi wajib diisi.</p>
+                <p class="field__error">Deskripsi wajib diisi dan hanya boleh berisi huruf dan spasi.</p>
               </div>
 
               <!-- Catatan -->
@@ -436,8 +436,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js?v=1791587905545"></script>
+  <script src="../assets/js/api.js?v=<?= time() ?>"></script>
+  <script src="../assets/js/script.js?v=<?= time() ?>"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var D = FinanceTrackData;

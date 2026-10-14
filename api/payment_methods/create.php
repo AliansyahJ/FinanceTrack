@@ -42,6 +42,9 @@ if (!in_array($icon, $validIcons)) {
 if (empty($name)) {
     sendJsonResponse(['success' => false, 'message' => 'Nama metode pembayaran tidak boleh kosong.'], 400);
 }
+if (!preg_match("/^[\p{L}0-9\s\.\-]+$/u", $name)) {
+    sendJsonResponse(['success' => false, 'message' => 'Nama metode pembayaran hanya boleh berisi huruf, angka, dan spasi.'], 400);
+}
 
 // Generate ID
 if (!empty($customId)) {

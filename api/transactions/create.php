@@ -47,6 +47,8 @@ if (empty($description)) {
     $errors['description'] = 'Deskripsi transaksi wajib diisi.';
 } elseif (mb_strlen($description) > 100) {
     $errors['description'] = 'Deskripsi maksimal 100 karakter. Gunakan catatan untuk detail.';
+} elseif (!preg_match("/^[\p{L}\s]+$/u", $description)) {
+    $errors['description'] = 'Deskripsi transaksi hanya boleh berisi huruf dan spasi.';
 }
 if (mb_strlen($notes) > 1000) {
     $errors['notes'] = 'Catatan terlalu panjang (maksimal 1000 karakter).';
@@ -169,6 +171,37 @@ try {
 
     $newId = (int)$pdo->lastInsertId();
 
+    // 4. Periksa apakah transaksi pengeluaran ini melampaui batas anggaran
+    $budgetAlert = null;
+    if ($type === 'expense') {
+        $txMonth = (int)date('n', strtotime($transactionDate));
+        $txYear  = (int)date('Y', strtotime($transactionDate));
+
+        $bStmt = $pdo->prepare('SELECT id, amount FROM budgets WHERE user_id = :uid AND category_id = :cid AND period_month = :m AND period_year = :y LIMIT 1');
+        $bStmt->execute([':uid' => $userId, ':cid' => $categoryId, ':m' => $txMonth, ':y' => $txYear]);
+        $bRow = $bStmt->fetch();
+
+        if ($bRow && (float)$bRow['amount'] > 0) {
+            $sumStmt = $pdo->prepare("SELECT COALESCE(SUM(amount), 0) AS total FROM transactions 
+                                      WHERE user_id = :uid AND category_id = :cid AND type = 'expense'
+                                      AND MONTH(transaction_date) = :m AND YEAR(transaction_date) = :y");
+            $sumStmt->execute([':uid' => $userId, ':cid' => $categoryId, ':m' => $txMonth, ':y' => $txYear]);
+            $totalSpent = (float)$sumStmt->fetchColumn();
+
+            if ($totalSpent >= (float)$bRow['amount']) {
+                $budgetAlert = [
+                    'kategoriId' => $categoryId,
+                    'nama'       => $catRow['name'],
+                    'icon'       => $catRow['icon'],
+                    'terpakai'   => $totalSpent,
+                    'batas'      => (float)$bRow['amount'],
+                    'persen'     => round(($totalSpent / (float)$bRow['amount']) * 100),
+                    'isOver'     => true
+                ];
+            }
+        }
+    }
+
     sendJsonResponse([
         'success' => true,
         'message' => 'Transaksi berhasil dicatat.',
@@ -185,7 +218,8 @@ try {
             'tipe' => $type,
             'jumlah' => $amount,
             'catatan' => $notes,
-            'struk' => $receiptPath
+            'struk' => $receiptPath,
+            'budgetAlert' => $budgetAlert
         ]
     ], 201);
 
