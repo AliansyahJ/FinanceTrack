@@ -46,6 +46,18 @@
   --border: #e2e8f0;
   --border-strong: #cbd5e1;
 
+  /* Material / Stitch Theme Surfaces & Neutrals */
+  --secondary: #475569;
+  --secondary-hover: #334155;
+  --on-surface: #0f172a;
+  --on-surface-variant: #64748b;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f8fafc;
+  --surface-container: #f1f5f9;
+  --surface-container-high: #e2e8f0;
+  --surface-container-highest: #cbd5e1;
+  --text-label-sm: 0.75rem;
+
   /* Glassmorphism Design Tokens */
   --glass-surface: rgba(255, 255, 255, 0.72);
   --glass-surface-card: rgba(255, 255, 255, 0.76);
@@ -60,8 +72,8 @@
   --z-base: 1;
   --z-topbar: 100;
   --z-bottomnav: 100;
+  --z-backdrop: 104;
   --z-sidebar: 105;
-  --z-backdrop: 110;
   --z-modal-backdrop: 1040;
   --z-modal: 1050;
   --z-toast: 1100;
@@ -213,10 +225,24 @@ table {
 
 /* Material Symbols sizing (icon font kept from Stitch export) */
 .material-symbols-outlined {
+  font-family: 'Material Symbols Outlined' !important;
+  font-weight: normal;
+  font-style: normal;
   font-size: 20px;
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   vertical-align: middle;
   flex-shrink: 0;
+  text-transform: none;
+  letter-spacing: normal;
+  word-wrap: normal;
+  white-space: nowrap;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: 'liga';
 }
 .material-symbols-outlined.icon-sm {
   font-size: 16px;
@@ -332,6 +358,8 @@ table {
   padding: 0 var(--space-lg);
   border-bottom: 1px solid var(--glass-border);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 
 .sidebar__brand img {
@@ -373,6 +401,8 @@ table {
   cursor: pointer;
   transition: all var(--transition-fast);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 
 .sidebar-toggle:hover {
@@ -464,6 +494,8 @@ table {
   padding: var(--space-md);
   border-top: 1px solid var(--border);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 
 .sidebar__user {
@@ -485,6 +517,8 @@ table {
   font-weight: 600;
   font-size: var(--text-sm);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .sidebar__user-name {
   font-size: var(--text-sm);
@@ -643,6 +677,7 @@ table {
   flex: 1;
   width: 100%;
   max-width: 1400px;
+  margin: 0 auto;
   padding: var(--space-xl) var(--space-xl) var(--space-2xl);
 }
 
@@ -657,6 +692,8 @@ table {
   align-items: center;
   gap: var(--space-sm);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
   flex-wrap: wrap;
 }
 
@@ -910,6 +947,8 @@ body.sidebar-open .sidebar-backdrop {
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .icon-box--primary {
   background-color: var(--primary-soft);
@@ -963,13 +1002,14 @@ body.sidebar-open .sidebar-backdrop {
 
 .btn--secondary {
   background-color: var(--surface);
-  border-color: var(--border);
+  border: 1px solid var(--border-strong);
   color: var(--text);
-  box-shadow: var(--shadow-xs);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
 }
 .btn--secondary:hover {
-  background-color: var(--surface-alt);
-  border-color: var(--border-strong);
+  background-color: var(--surface-container-low);
+  border-color: #94a3b8;
+  color: var(--text);
 }
 
 .btn--success {
@@ -991,10 +1031,12 @@ body.sidebar-open .sidebar-backdrop {
 
 .btn--ghost {
   background-color: transparent;
+  border: 1px solid transparent;
   color: var(--text-secondary);
 }
 .btn--ghost:hover {
-  background-color: var(--surface-alt);
+  background-color: var(--surface-container-low);
+  border-color: var(--border);
   color: var(--text);
 }
 
@@ -1077,6 +1119,8 @@ body.sidebar-open .sidebar-backdrop {
   font-weight: 500;
   white-space: nowrap;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
   transition: background-color var(--transition), color var(--transition);
 }
 .pill:hover {
@@ -1152,11 +1196,22 @@ body.sidebar-open .sidebar-backdrop {
 .select {
   appearance: none;
   padding-right: 2.25rem;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-color: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 0.625rem center;
   background-size: 18px;
   cursor: pointer;
+  transition: border-color var(--transition), box-shadow var(--transition), background-color var(--transition);
+}
+.select:hover {
+  border-color: var(--primary);
+  background-color: var(--surface-container-low);
 }
 
 /* Input with leading icon */
@@ -1165,14 +1220,15 @@ body.sidebar-open .sidebar-backdrop {
   display: flex;
   align-items: center;
 }
-.input-group .material-symbols-outlined {
+.input-group > .material-symbols-outlined {
   position: absolute;
   left: 0.75rem;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   pointer-events: none;
+  z-index: 2;
 }
 .input-group .input {
-  padding-left: 2.5rem;
+  padding-left: 2.5rem !important;
 }
 .input-group--suffix .input {
   padding-left: 0.75rem;
@@ -1182,13 +1238,29 @@ body.sidebar-open .sidebar-backdrop {
   position: absolute;
   right: 0.5rem;
   background: none;
+  border: none;
   color: var(--text-muted);
   padding: 0.25rem;
   border-radius: var(--radius-sm);
   display: none;
+  cursor: pointer;
 }
 .input-group__suffix.is-visible {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Sembunyikan clear icon bawaan browser agar tidak bertumpukan dengan suffix custom */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  display: none;
+}
+.filter-bar__search .input {
+  padding-right: 2.5rem !important;
 }
 
 /* Currency input with Rp prefix */
@@ -1288,6 +1360,8 @@ body.sidebar-open .sidebar-backdrop {
   border-radius: var(--radius-full);
   transition: background-color var(--transition);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .switch__track::after {
   content: "";
@@ -1386,6 +1460,8 @@ body.sidebar-open .sidebar-backdrop {
   display: grid;
   place-items: center;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .cell-icon--income {
   background-color: var(--success-soft);
@@ -1501,30 +1577,54 @@ body.sidebar-open .sidebar-backdrop {
 .filter-bar__controls {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
+  padding: var(--space-md);
   margin-top: var(--space-md);
-  background-color: var(--background);
-  border-radius: var(--radius-md);
+  background-color: var(--surface-container-low);
+  border: 1px solid var(--surface-container);
+  border-radius: var(--radius-lg);
 }
 .filter-bar__control {
   display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex: 1 1 180px;
-  min-width: 160px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  flex: 1 1 170px;
+  min-width: 150px;
 }
 .filter-bar__control > label {
   font-size: var(--text-xs);
+  font-weight: 600;
   color: var(--text-secondary);
   white-space: nowrap;
 }
-.filter-bar__control .select {
-  min-height: 36px;
-  padding-top: 0.375rem;
-  padding-bottom: 0.375rem;
+.filter-bar__control .select,
+.filter-bar__control .input {
+  min-height: 38px;
+  height: 38px;
+  padding: 0.375rem 0.75rem;
   font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Glassmorphism Period Capsule & Document Actions */
+.period-capsule {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: var(--surface-container-low);
+  padding: 3px 6px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-container);
+  box-shadow: var(--shadow-xs);
+}
+.period-capsule .segmented {
+  background: transparent;
+  padding: 0;
+  border-radius: var(--radius-md);
 }
 
 /* Quick filter pills (Stitch) */
@@ -1537,22 +1637,27 @@ body.sidebar-open .sidebar-backdrop {
 }
 .filter-pill {
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
   padding: 0.375rem var(--space-md);
-  border: 0;
+  border: 1px solid var(--border);
   border-radius: var(--radius-full);
-  background-color: var(--surface-alt);
+  background-color: var(--surface);
   color: var(--text-secondary);
   font-size: var(--text-xs);
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
-  transition: background-color var(--transition), color var(--transition);
+  transition: background-color var(--transition), color var(--transition), border-color var(--transition);
 }
 .filter-pill:hover {
   color: var(--text);
+  border-color: var(--border-strong);
+  background-color: var(--surface-container-low);
 }
 .filter-pill.is-active {
   background-color: var(--primary);
+  border-color: var(--primary);
   color: #fff;
   box-shadow: var(--shadow-xs);
 }
@@ -1685,15 +1790,24 @@ body.sidebar-open .sidebar-backdrop {
   transition: opacity var(--transition-slow), visibility var(--transition-slow),
     transform var(--transition-slow);
 }
-.toast.is-visible {
+.toast.is-visible { display: flex !important;
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
 }
-.toast__icon {
-  color: var(--success);
-  flex-shrink: 0;
+.toast__icon {flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
+.toast--success { border-left: 4px solid var(--success); }
+.toast--success .toast__icon { color: var(--success); }
+.toast--error { border-left: 4px solid var(--danger); }
+.toast--error .toast__icon { color: var(--danger); }
+.toast--warning { border-left: 4px solid var(--warning); }
+.toast--warning .toast__icon { color: var(--warning); }
+.toast--info { border-left: 4px solid var(--primary); }
+.toast--info .toast__icon { color: var(--primary); }
+
 .toast__title {
   font-size: var(--text-base);
   font-weight: 600;
@@ -1731,6 +1845,8 @@ body.sidebar-open .sidebar-backdrop {
   height: 10px;
   border-radius: 3px;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 
 /* --- Donut / composition bar --- */
@@ -1774,6 +1890,8 @@ body.sidebar-open .sidebar-backdrop {
   height: 10px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .composition-list__value {
   font-variant-numeric: tabular-nums;
@@ -1814,6 +1932,8 @@ body.sidebar-open .sidebar-backdrop {
 }
 .callout__icon {
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
   color: var(--primary);
 }
 .callout--success .callout__icon {
@@ -1894,6 +2014,8 @@ body.sidebar-open .sidebar-backdrop {
   display: flex;
   gap: var(--space-xs);
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 /* Kartu mobile mengikuti Stitch: aksi hapus saja.
    Edit tetap tersedia di tabel desktop. */
@@ -2162,6 +2284,8 @@ body.sidebar-open .sidebar-backdrop {
   font-size: var(--text-sm);
   font-weight: 700;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .recap-item__name {
   font-size: var(--text-base);
@@ -2214,6 +2338,8 @@ body.sidebar-open .sidebar-backdrop {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 .landing__brand img {
   height: 33px;
@@ -2341,6 +2467,8 @@ body.sidebar-open .sidebar-backdrop {
 }
 .upload-zone__link {
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
   color: var(--primary);
   font-size: var(--text-xs);
   font-weight: 600;
@@ -2485,6 +2613,8 @@ body.sidebar-open .sidebar-backdrop {
   width: 116px;
   height: 116px;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
   border-radius: 50%;
   background: conic-gradient(
     var(--success) calc(var(--score) * 1%),
@@ -2582,13 +2712,20 @@ body.sidebar-open .sidebar-backdrop {
   [data-export-csv],
   [data-export-pdf],
   #btnExportCsv,
-  #btnExportPdf {
+  #btnExportPdf ,
+  .btn {
     display: none !important;
   }
 
   body {
     background: #ffffff !important;
     color: #111827 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 
   .app {

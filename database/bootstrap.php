@@ -6,13 +6,20 @@
 
 require_once __DIR__ . '/../config/database.php';
 
-function getDatabaseBootstrapData(int $userId): array {
+function getDatabaseBootstrapData(int $userId, ?int $month = null, ?int $year = null): array {
     try {
         $pdo = getDbConnection();
+
+        $reqM = $month ?? (int)date('n');
+        $reqY = $year ?? (int)date('Y');
 
         // 1. Kategori
         $catStmt = $pdo->query("SELECT id, name AS nama, type AS tipe, icon, color AS warna FROM categories ORDER BY name ASC");
         $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        // 1b. Metode Pembayaran
+        $pmStmt = $pdo->query("SELECT id, name AS nama, type AS tipe, icon, color AS warna FROM payment_methods ORDER BY name ASC");
+        $paymentMethods = $pmStmt ? $pmStmt->fetchAll(PDO::FETCH_ASSOC) : [];
 
         // 2. Transaksi User
         $txStmt = $pdo->prepare("SELECT t.id, t.category_id AS kategoriId, t.type AS tipe, 
@@ -31,9 +38,7 @@ function getDatabaseBootstrapData(int $userId): array {
             return $t;
         }, $rawTransactions);
 
-        // 3. Anggaran User (bulan & tahun berjalan)
-        $m = (int)date('n');
-        $y = (int)date('Y');
+        // 3. Anggaran User (berdasarkan parameter bulan & tahun)
         $bgStmt = $pdo->prepare("SELECT b.id, b.category_id AS kategoriId, b.amount AS batas,
                                        c.name AS nama, c.icon, c.color AS warna,
                                        COALESCE(SUM(t.amount), 0) AS terpakai
@@ -46,7 +51,7 @@ function getDatabaseBootstrapData(int $userId): array {
                                      AND YEAR(t.transaction_date) = b.period_year
                                 WHERE b.user_id = :uid AND b.period_month = :m AND b.period_year = :y
                                 GROUP BY b.id, b.category_id, b.amount, c.name, c.icon, c.color");
-        $bgStmt->execute([':uid' => $userId, ':m' => $m, ':y' => $y]);
+        $bgStmt->execute([':uid' => $userId, ':m' => $reqM, ':y' => $reqY]);
         $rawBudgets = $bgStmt->fetchAll(PDO::FETCH_ASSOC);
         $budgets = array_map(function ($b) {
             $b['id'] = (int)$b['id'];
@@ -116,7 +121,7 @@ function getDatabaseBootstrapData(int $userId): array {
                                      AND YEAR(t.transaction_date) = :y
                                    GROUP BY c.id, c.name, c.color, c.icon
                                    ORDER BY nilai DESC");
-        $compStmt->execute([':uid' => $userId, ':m' => $m, ':y' => $y]);
+        $compStmt->execute([':uid' => $userId, ':m' => $reqM, ':y' => $reqY]);
         $expenseComposition = array_map(function ($r) {
             return [
                 'id' => $r['id'],
@@ -160,6 +165,7 @@ function getDatabaseBootstrapData(int $userId): array {
         return [
             'success' => true,
             'categories' => $categories,
+            'paymentMethods' => $paymentMethods,
             'transactions' => $transactions,
             'budgets' => $budgets,
             'summary' => $summary,

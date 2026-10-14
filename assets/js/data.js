@@ -34,12 +34,12 @@ const FinanceTrackData = (() => {
     { id: "tabungan", nama: "Tabungan", tipe: "income", icon: "savings" },
   ];
 
-  const paymentMethods = [
-    { id: "cash", nama: "Cash" },
-    { id: "gopay", nama: "GoPay" },
-    { id: "ovo", nama: "OVO" },
-    { id: "dana", nama: "DANA" },
-    { id: "tabungan", nama: "Tabungan" },
+  let paymentMethods = [
+    { id: "cash", nama: "Cash", tipe: "cash" },
+    { id: "gopay", nama: "GoPay", tipe: "ewallet" },
+    { id: "ovo", nama: "OVO", tipe: "ewallet" },
+    { id: "dana", nama: "DANA", tipe: "ewallet" },
+    { id: "tabungan", nama: "Tabungan", tipe: "bank" },
   ];
 
   /* ----------------------------------------------------------------------
@@ -629,7 +629,7 @@ const FinanceTrackData = (() => {
   }
 
   function loadStoredBudgets() {
-    if (typeof window !== "undefined" && window.__FT_BOOTSTRAP__ && Array.isArray(window.__FT_BOOTSTRAP__.budgets) && window.__FT_BOOTSTRAP__.budgets.length > 0) {
+    if (typeof window !== "undefined" && window.__FT_BOOTSTRAP__ && Array.isArray(window.__FT_BOOTSTRAP__.budgets)) {
       return JSON.parse(JSON.stringify(window.__FT_BOOTSTRAP__.budgets));
     }
     try {
@@ -659,13 +659,16 @@ const FinanceTrackData = (() => {
     if (Array.isArray(window.__FT_BOOTSTRAP__.categories) && window.__FT_BOOTSTRAP__.categories.length > 0) {
       categories = window.__FT_BOOTSTRAP__.categories;
     }
+    if (Array.isArray(window.__FT_BOOTSTRAP__.paymentMethods) && window.__FT_BOOTSTRAP__.paymentMethods.length > 0) {
+      paymentMethods = window.__FT_BOOTSTRAP__.paymentMethods;
+    }
   }
 
   /* ----------------------------------------------------------------------
      Helper functions (dipakai script.js)
      ---------------------------------------------------------------------- */
-  const getCategory = (id) => categories.find((c) => c.id === id) || null;
-  const getMethod = (id) => paymentMethods.find((m) => m.id === id) || null;
+  const getCategory = (id) => categories.find((c) => String(c.id) === String(id)) || null;
+  const getMethod = (id) => paymentMethods.find((m) => String(m.id) === String(id)) || null;
 
   /** Kategori expense saja (untuk form & filter) */
   const expenseCategories = () => categories.filter((c) => c.tipe === "expense");
@@ -823,6 +826,10 @@ const FinanceTrackData = (() => {
   };
 
   const getDynamicExpenseComposition = () => {
+    if (typeof window !== "undefined" && window.__FT_BOOTSTRAP__ && window.__FT_BOOTSTRAP__.expenseComposition) {
+      return JSON.parse(JSON.stringify(window.__FT_BOOTSTRAP__.expenseComposition));
+    }
+
     const currentPeriod = (summary && summary.periodeRaw) || "2026-10";
     const curMonthExpenses = transactions.filter((t) => t.tipe === "expense" && t.tanggal && t.tanggal.startsWith(currentPeriod));
 
@@ -838,6 +845,7 @@ const FinanceTrackData = (() => {
     });
 
     const list = Array.from(map.values()).sort((a, b) => b.nilai - a.nilai);
+    if (typeof window !== "undefined" && window.__FT_BOOTSTRAP__) return list;
     if (list.length > 0) return list;
     return [
       { id: "makanan", nama: "Makanan", nilai: 750000, warna: "#2563eb", icon: "restaurant" },
@@ -870,7 +878,24 @@ const FinanceTrackData = (() => {
     get categories() {
       return categories;
     },
-    paymentMethods,
+    set categories(val) {
+      if (Array.isArray(val)) categories = val;
+    },
+    get paymentMethods() {
+      return paymentMethods;
+    },
+    set paymentMethods(val) {
+      if (Array.isArray(val)) paymentMethods = val;
+    },
+    updatePaymentMethod(updated) {
+      if (!updated || !updated.id) return false;
+      const idx = paymentMethods.findIndex(m => String(m.id) === String(updated.id));
+      if (idx > -1) {
+        paymentMethods[idx] = Object.assign({}, paymentMethods[idx], updated);
+        return true;
+      }
+      return false;
+    },
     expenseCategories,
     incomeCategories,
     getCategory,

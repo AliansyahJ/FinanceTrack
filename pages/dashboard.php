@@ -1,9 +1,9 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
 $userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
@@ -36,7 +36,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/style.css?v=1791587905545">
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
@@ -73,6 +73,18 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <a class="nav-item" href="anggaran.php">
             <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
             Anggaran
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="kategori.php">
+            <span class="material-symbols-outlined" aria-hidden="true">category</span>
+            Kategori
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="metode-pembayaran.php">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+            Metode Pembayaran
           </a>
         </li>
         <li>
@@ -145,10 +157,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="topbar__user-menu" data-user-menu style="position:relative;flex-shrink:0;">
           <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
             <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
-            <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
+            <span data-user-name style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
-          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:8px;background:var(--surface-container-lowest);border:1px solid var(--surface-container);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:200px;z-index:100;">
+          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" >
             <a href="pengaturan.php" class="topbar-dropdown__item" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--on-surface);text-decoration:none;">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">person</span>
               <span>Profil / Pengaturan</span>
@@ -178,76 +190,81 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <p class="page-subtitle">Pantau uang saku, penghasilan sampingan, dan belanja harianmu bulan ini.</p>
         </div>
         <div class="page-header__actions">
-          <a class="btn btn--secondary" href="laporan.php">
-            <span class="material-symbols-outlined icon-sm" aria-hidden="true">download</span>
-            Unduh Ringkasan
-          </a>
-          <a class="btn btn--primary" href="form-transaksi.php">
+          <a class="btn btn--primary" href="form-transaksi.php" style="min-height:38px; padding:0.375rem 1rem;">
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">add</span>
-            Transaksi Baru
+            Tambah Transaksi Baru
           </a>
         </div>
       </div>
 
       <!-- Summary cards -->
-      <section class="grid grid--4" style="margin-top:var(--gutter)" aria-label="Ringkasan keuangan">
-        <article class="summary-card">
+      <section class="grid grid--4" style="margin-top:var(--gutter);gap:var(--space-md)" aria-label="Ringkasan keuangan">
+        <article class="summary-card interactive-stat-card" data-dash-nav="transaksi.php" tabindex="0" role="button" aria-label="Lihat transaksi saldo" title="Klik untuk lihat mutasi transaksi" style="background:linear-gradient(145deg, rgba(2, 132, 199, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(2, 132, 199, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
             <div class="d-flex align-items-center" style="gap: 8px;">
-              <p class="summary-card__label">Saldo Saat Ini</p>
+              <p class="summary-card__label" style="color:var(--primary);font-weight:700">Saldo Saat Ini</p>
               <button type="button" class="balance-hero__toggle" data-balance-toggle aria-label="Sembunyikan saldo" style="background: none; border: none; padding: 0; cursor: pointer; color: var(--on-surface-variant); display: flex;">
                 <span class="material-symbols-outlined icon-sm" aria-hidden="true">visibility</span>
               </button>
             </div>
-            <span class="icon-box icon-box--primary" aria-hidden="true">
+            <span class="icon-box icon-box--primary" style="width:32px;height:32px;border-radius:8px;background:rgba(2, 132, 199, 0.14);color:var(--primary)" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">account_balance_wallet</span>
             </span>
           </div>
           <div>
             <p class="summary-card__value" data-balance-value>Rp <?= isset($summary['saldo']) ? number_format($summary['saldo'], 0, ',', '.') : '0' ?></p>
-            <p class="summary-card__meta">
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
               <span class="badge badge--income badge--dot">Bulan ini</span>
-              aman &amp; terkontrol
+              <span>aman &amp; terkontrol</span>
             </p>
           </div>
         </article>
 
-        <article class="summary-card">
+        <article class="summary-card interactive-stat-card" data-dash-nav="transaksi.php?type=income" tabindex="0" role="button" aria-label="Lihat riwayat pemasukan" title="Klik untuk lihat riwayat pemasukan" style="background:linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(16, 185, 129, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Total Pemasukan</p>
-            <span class="icon-box icon-box--success" aria-hidden="true">
+            <p class="summary-card__label" style="color:#059669;font-weight:700">Total Pemasukan</p>
+            <span class="icon-box icon-box--success" style="width:32px;height:32px;border-radius:8px;background:rgba(16, 185, 129, 0.14);color:#059669" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">south_west</span>
             </span>
           </div>
           <div>
             <p class="summary-card__value text-income">Rp <?= isset($summary['pemasukan']) ? number_format($summary['pemasukan'], 0, ',', '.') : '0' ?></p>
-            <p class="summary-card__meta">Uang saku + Freelance</p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:#059669">touch_app</span>
+              <span>Lihat mutasi masuk</span>
+            </p>
           </div>
         </article>
 
-        <article class="summary-card">
+        <article class="summary-card interactive-stat-card" data-dash-nav="transaksi.php?type=expense" tabindex="0" role="button" aria-label="Lihat riwayat pengeluaran" title="Klik untuk lihat riwayat pengeluaran" style="background:linear-gradient(145deg, rgba(239, 68, 68, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(239, 68, 68, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Total Pengeluaran</p>
-            <span class="icon-box icon-box--danger" aria-hidden="true">
+            <p class="summary-card__label" style="color:var(--danger);font-weight:700">Total Pengeluaran</p>
+            <span class="icon-box icon-box--danger" style="width:32px;height:32px;border-radius:8px;background:rgba(239, 68, 68, 0.14);color:var(--danger)" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">north_east</span>
             </span>
           </div>
           <div>
             <p class="summary-card__value text-expense">Rp <?= isset($summary['pengeluaran']) ? number_format($summary['pengeluaran'], 0, ',', '.') : '0' ?></p>
-            <p class="summary-card__meta"><?= $summary['totalAnggaran'] > 0 ? round(($summary['pengeluaranBulan'] / $summary['totalAnggaran']) * 100) : 0 ?>% dari total anggaran</p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:var(--danger)">touch_app</span>
+              <span><?= $summary['totalAnggaran'] > 0 ? round(($summary['pengeluaranBulan'] / $summary['totalAnggaran']) * 100) : 0 ?>% dari anggaran</span>
+            </p>
           </div>
         </article>
 
-        <article class="summary-card">
+        <article class="summary-card interactive-stat-card" data-dash-nav="anggaran.php" tabindex="0" role="button" aria-label="Lihat anggaran bulanan" title="Klik untuk kelola anggaran" style="background:linear-gradient(145deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(245, 158, 11, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Sisa Anggaran</p>
-            <span class="icon-box icon-box--muted" aria-hidden="true">
+            <p class="summary-card__label" style="color:#d97706;font-weight:700">Sisa Anggaran</p>
+            <span class="icon-box icon-box--warning" style="width:32px;height:32px;border-radius:8px;background:rgba(245, 158, 11, 0.14);color:#d97706" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">savings</span>
             </span>
           </div>
           <div>
-            <p class="summary-card__value">Rp <?= isset($summary['sisaAnggaran']) ? number_format($summary['sisaAnggaran'], 0, ',', '.') : '0' ?></p>
-            <p class="summary-card__meta">Aman hingga akhir bulan</p>
+            <p class="summary-card__value" style="color:#d97706">Rp <?= isset($summary['sisaAnggaran']) ? number_format($summary['sisaAnggaran'], 0, ',', '.') : '0' ?></p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:#d97706">arrow_forward</span>
+              <span>Kelola di halaman anggaran</span>
+            </p>
           </div>
         </article>
       </section>
@@ -412,7 +429,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
   <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/script.js?v=1791587905545"></script>
   <script>
     /* Render konten dinamis Dashboard dari mock data. */
     document.addEventListener("DOMContentLoaded", function () {
@@ -515,27 +532,52 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     });
   </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const userMenuBtn = document.querySelector('[data-user-menu-trigger]');
-    const userMenuDropdown = document.querySelector('[data-user-menu-dropdown]');
-    if (userMenuBtn && userMenuDropdown) {
-      userMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = userMenuBtn.getAttribute('aria-expanded') === 'true';
-        userMenuBtn.setAttribute('aria-expanded', !isExpanded);
-        userMenuDropdown.style.display = isExpanded ? 'none' : 'block';
+<?php if (isset($_SESSION['auth_success'])): ?>
+  <script>
+    try {
+      sessionStorage.setItem("ft_toast", JSON.stringify({
+        title: "Berhasil",
+        message: "<?= htmlspecialchars($_SESSION['auth_success']) ?>",
+        icon: "check_circle"
+      }));
+    } catch (e) {}
+  </script>
+<?php unset($_SESSION['auth_success']); endif; ?>
+
+  <!-- TOAST NOTIFICATION -->
+  <div class="toast" data-toast role="status" aria-live="polite">
+    <span class="material-symbols-outlined toast__icon" data-toast-icon aria-hidden="true">check_circle</span>
+    <div>
+      <p class="toast__title" data-toast-title></p>
+      <p class="toast__message" data-toast-message></p>
+    </div>
+    <button type="button" class="btn btn--icon btn--ghost" data-toast-close aria-label="Tutup notifikasi">
+      <span class="material-symbols-outlined icon-sm">close</span>
+    </button>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      document.querySelectorAll("[data-dash-nav]").forEach(function(card) {
+        card.addEventListener("click", function(e) {
+          // If click was on balance toggle, don't navigate
+          if (e.target.closest("[data-balance-toggle]")) return;
+          var url = this.getAttribute("data-dash-nav");
+          if (url) window.location.href = url;
+        });
+        card.addEventListener("keydown", function(e) {
+          if (e.key === "Enter" || e.key === " ") {
+            if (e.target.closest("[data-balance-toggle]")) return;
+            e.preventDefault();
+            var url = this.getAttribute("data-dash-nav");
+            if (url) window.location.href = url;
+          }
+        });
       });
-      document.addEventListener('click', (e) => {
-        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-          userMenuBtn.setAttribute('aria-expanded', 'false');
-          userMenuDropdown.style.display = 'none';
-        }
-      });
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
+
 
 

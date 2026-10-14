@@ -278,6 +278,15 @@
     init() {
       this.modal = Utils.qs("[data-modal]");
       this.toast = Utils.qs("[data-toast]");
+      if (this.toast) {
+        const closeBtn = Utils.qs("[data-toast-close]", this.toast);
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            this.toast.classList.remove("is-visible");
+            clearTimeout(this.toastTimer);
+          });
+        }
+      }
 
       if (this.modal) {
         // Tutup modal saat klik backdrop / tombol batal / tombol close.
@@ -338,7 +347,7 @@
      * @param {string} message Pesan tambahan
      * @param {string} icon    Nama ikon Material Symbols
      */
-    showToast(title, message = "", icon = "check_circle") {
+    showToast(title, message = "", icon = "check_circle", type = "") {
       if (!this.toast) return;
       const t = Utils.qs("[data-toast-title]", this.toast);
       const m = Utils.qs("[data-toast-message]", this.toast);
@@ -348,7 +357,7 @@
       if (m) m.textContent = message;
       if (i) i.textContent = icon;
 
-      this.toast.classList.add("is-visible");
+      if (!type) { if (icon === "error") type = "error"; else if (icon === "check_circle") type = "success"; else if (icon === "warning") type = "warning"; else type = "info"; } this.toast.className = "toast toast--" + type + " is-visible";
       clearTimeout(this.toastTimer);
       this.toastTimer = setTimeout(() => {
         this.toast.classList.remove("is-visible");
@@ -373,12 +382,20 @@
 
       this.readRows();
 
-      // Read search param from URL
-      const q = new URLSearchParams(window.location.search).get("q");
+      // Read search & type param from URL
+      const urlParams = new URLSearchParams(window.location.search);
+      const q = urlParams.get("q");
       if (q) {
         const searchInput = document.querySelector("[data-search]");
         if (searchInput) {
           searchInput.value = q;
+        }
+      }
+      const typeParam = urlParams.get("type");
+      if (typeParam) {
+        const typeSel = document.querySelector("[data-filter-type]");
+        if (typeSel) {
+          typeSel.value = typeParam;
         }
       }
 
@@ -450,10 +467,68 @@
       const typeSel = Utils.qs("[data-filter-type]");
       const catSel = Utils.qs("[data-filter-category]");
       const periodSel = Utils.qs("[data-filter-period]");
+      const startDateInput = Utils.qs("[data-filter-start]");
+      const endDateInput = Utils.qs("[data-filter-end]");
       const resetBtn = Utils.qs("[data-filter-reset]");
 
-      [typeSel, catSel, periodSel].forEach((el) => {
-        if (el) el.addEventListener("change", () => this.applyFilters());
+      [typeSel, catSel, periodSel, startDateInput, endDateInput].forEach((el) => {
+        if (el) el.addEventListener("change", () => {
+          if (el === startDateInput || el === endDateInput) {
+            Utils.qsa("[data-date-preset]").forEach(b => b.classList.remove("is-active"));
+          }
+          this.applyFilters();
+        });
+      });
+
+      [startDateInput, endDateInput].forEach((el) => {
+        if (el) el.addEventListener("input", () => {
+          Utils.qsa("[data-date-preset]").forEach(b => b.classList.remove("is-active"));
+          this.applyFilters();
+        });
+      });
+
+      // Quick Date Presets
+      const presetBtns = Utils.qsa("[data-date-preset]");
+      presetBtns.forEach((btn) => {
+        btn.addEventListener("click", () => {
+          presetBtns.forEach((b) => b.classList.remove("is-active"));
+          btn.classList.add("is-active");
+
+          const preset = btn.dataset.datePreset;
+          const now = new Date();
+          const fmt = (d) => {
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            const day = String(d.getDate()).padStart(2, "0");
+            return `${y}-${m}-${day}`;
+          };
+
+          if (preset === "today") {
+            const todayStr = fmt(now);
+            if (startDateInput) startDateInput.value = todayStr;
+            if (endDateInput) endDateInput.value = todayStr;
+          } else if (preset === "7days") {
+            const past7 = new Date();
+            past7.setDate(past7.getDate() - 7);
+            if (startDateInput) startDateInput.value = fmt(past7);
+            if (endDateInput) endDateInput.value = fmt(now);
+          } else if (preset === "30days") {
+            const past30 = new Date();
+            past30.setDate(past30.getDate() - 30);
+            if (startDateInput) startDateInput.value = fmt(past30);
+            if (endDateInput) endDateInput.value = fmt(now);
+          } else if (preset === "this-month") {
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+            if (startDateInput) startDateInput.value = fmt(firstDay);
+            if (endDateInput) endDateInput.value = fmt(lastDay);
+          } else if (preset === "all") {
+            if (startDateInput) startDateInput.value = "";
+            if (endDateInput) endDateInput.value = "";
+          }
+
+          this.applyFilters();
+        });
       });
 
       if (resetBtn) {
@@ -484,6 +559,9 @@
         this.visibleCheckboxes().forEach((cb) => {
           cb.checked = selectAll.checked;
         });
+        if (typeof window.updateTxExportButtonState === "function") {
+          window.updateTxExportButtonState();
+        }
       });
 
       const tbody = Utils.qs("[data-tx-tbody]");
@@ -492,6 +570,9 @@
           if (e.target.classList.contains("row-checkbox")) {
             const v = this.visibleCheckboxes();
             selectAll.checked = v.length > 0 && v.every((cb) => cb.checked);
+            if (typeof window.updateTxExportButtonState === "function") {
+              window.updateTxExportButtonState();
+            }
           }
         });
       }
@@ -530,19 +611,31 @@
       const typeSel = Utils.qs("[data-filter-type]");
       const catSel = Utils.qs("[data-filter-category]");
       const periodSel = Utils.qs("[data-filter-period]");
+      const startDateInput = Utils.qs("[data-filter-start]");
+      const endDateInput = Utils.qs("[data-filter-end]");
       const sortSel = Utils.qs("[data-filter-sort]");
 
       if (search) search.value = "";
       if (typeSel) typeSel.value = "all";
       if (catSel) catSel.value = "all";
       if (periodSel) periodSel.value = "all";
+      if (startDateInput) startDateInput.value = "";
+      if (endDateInput) endDateInput.value = "";
       if (sortSel) sortSel.value = "newest";
+
+      Utils.qsa("[data-date-preset]").forEach(b => {
+        b.classList.toggle("is-active", b.dataset.datePreset === "all");
+      });
 
       const clear = Utils.qs("[data-search-clear]");
       if (clear) clear.classList.remove("is-visible");
 
       const selectAll = Utils.qs("[data-select-all]");
       if (selectAll) selectAll.checked = false;
+      this.visibleCheckboxes().forEach((cb) => (cb.checked = false));
+      if (typeof window.updateTxExportButtonState === "function") {
+        window.updateTxExportButtonState();
+      }
 
       this.applyFilters();
       Feedback.showToast(
@@ -557,12 +650,16 @@
       const typeSel = Utils.qs("[data-filter-type]");
       const catSel = Utils.qs("[data-filter-category]");
       const periodSel = Utils.qs("[data-filter-period]");
+      const startDateInput = Utils.qs("[data-filter-start]");
+      const endDateInput = Utils.qs("[data-filter-end]");
       const sortSel = Utils.qs("[data-filter-sort]");
 
       const term = (search?.value || "").toLowerCase().trim();
       const type = typeSel?.value || "all";
       const cat = catSel?.value || "all";
       const period = periodSel?.value || "all";
+      const startDate = startDateInput?.value || "";
+      const endDate = endDateInput?.value || "";
       const sort = sortValue || sortSel?.value || "newest";
 
       this.filtered = this.rows.filter((row) => {
@@ -570,6 +667,8 @@
         if (term && !text.includes(term)) return false;
         if (type !== "all" && row.dataset.type !== type) return false;
         if (cat !== "all" && row.dataset.kategori !== cat) return false;
+        if (startDate && row.dataset.tanggal && row.dataset.tanggal < startDate) return false;
+        if (endDate && row.dataset.tanggal && row.dataset.tanggal > endDate) return false;
         if (period !== "all" && row.dataset.period !== period) return false;
         return true;
       });
@@ -642,6 +741,9 @@
       if (selectAll) {
         const v = this.visibleCheckboxes();
         selectAll.checked = v.length > 0 && v.every((cb) => cb.checked);
+      }
+      if (typeof window.updateTxExportButtonState === "function") {
+        window.updateTxExportButtonState();
       }
     },
 
@@ -739,8 +841,9 @@
     },
 
     handleDelete(id) {
-      const row = this.rows.find((r) => r.dataset.id === id);
-      const desc = row?.dataset.descripsi || "transaksi ini";
+      const row = this.rows.find((r) => String(r.dataset.id) === String(id));
+      const feedItem = this.feedItems.find((i) => String(i.dataset.feedId) === String(id));
+      const desc = row?.dataset.descripsi || feedItem?.querySelector(".cell-identity__title")?.textContent || "transaksi ini";
       const jumlah = row?.dataset.jumlah || 0;
 
       Feedback.openModal({
@@ -749,27 +852,40 @@
           jumlah
         )} akan dihapus dari daftar. Tindakan ini tidak dapat dibatalkan.`,
         confirmText: "Ya, hapus",
-        onConfirm: () => {
-          if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.deleteTransaction) {
-            FinanceTrackData.deleteTransaction(id);
+        onConfirm: async () => {
+          try {
+            if (window.FinanceTrackAPI && window.FinanceTrackAPI.deleteTransaction) {
+              await window.FinanceTrackAPI.deleteTransaction(id);
+            }
+            if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.deleteTransaction) {
+              FinanceTrackData.deleteTransaction(id);
+            }
+
+            const currentFeedItem = this.feedItems.find((i) => String(i.dataset.feedId) === String(id));
+            const currentRow = this.rows.find((r) => String(r.dataset.id) === String(id));
+            if (currentRow) currentRow.remove();
+            if (currentFeedItem) currentFeedItem.remove();
+
+            this.readRows();
+            this.applyFilters();
+
+            const totalEl = Utils.qs("[data-tx-total]");
+            if (totalEl && typeof FinanceTrackData !== "undefined") {
+              totalEl.textContent = FinanceTrackData.transactions.length + " catatan";
+            }
+
+            Feedback.showToast(
+              "Transaksi dihapus",
+              `"${desc}" telah berhasil dihapus.`,
+              "delete"
+            );
+          } catch (err) {
+            Feedback.showToast(
+              "Gagal menghapus",
+              err.message || "Gagal menghapus transaksi dari database.",
+              "error"
+            );
           }
-          const feedItem = this.feedItems.find((i) => i.dataset.feedId === id);
-          if (row) row.remove();
-          if (feedItem) feedItem.remove();
-
-          this.readRows();
-          this.applyFilters();
-
-          const totalEl = Utils.qs("[data-tx-total]");
-          if (totalEl && typeof FinanceTrackData !== "undefined") {
-            totalEl.textContent = FinanceTrackData.transactions.length + " catatan";
-          }
-
-          Feedback.showToast(
-            "Transaksi dihapus",
-            `"${desc}" telah dihapus dari daftar.`,
-            "delete"
-          );
         },
       });
     },
@@ -1320,7 +1436,7 @@
               "ft_toast",
               JSON.stringify({
                 title: "Transaksi diperbarui",
-                message: `"" berhasil diperbarui.`,
+                message: `"${txData.deskripsi || "Transaksi"}" berhasil diperbarui.`,
                 icon: "check_circle",
               })
             );
@@ -1469,6 +1585,26 @@
       Utils.qsa("[data-budget-card]").forEach((card) => {
         const spent = parseInt(card.dataset.budgetSpent || "0", 10);
         const limit = parseInt(card.dataset.budgetLimit || "0", 10);
+
+        if (limit <= 0) {
+          const bar = Utils.qs("[data-budget-bar]", card);
+          if (bar) {
+            bar.classList.remove(...this.BAR_MODIFIERS);
+            bar.style.width = "0%";
+          }
+          const pctEl = Utils.qs("[data-budget-pct]", card);
+          if (pctEl) {
+            pctEl.textContent = "Tanpa Batas";
+            pctEl.className = "badge badge--muted";
+          }
+          const remainingEl = Utils.qs("[data-budget-remaining]", card);
+          if (remainingEl) {
+            remainingEl.textContent = "Tidak Dibatasi";
+            remainingEl.className = "mini-stat__value numeric text-secondary";
+          }
+          return;
+        }
+
         const pct = Utils.percent(spent, limit);
 
         const bar = Utils.qs("[data-budget-bar]", card);
@@ -1935,6 +2071,16 @@
     Charts,
   };
 
+  
+  // Global HTML5 Validation Interceptor
+  document.addEventListener('invalid', function(e) {
+    e.preventDefault();
+    if (typeof FinanceTrack !== 'undefined' && FinanceTrack.Feedback) {
+      FinanceTrack.Feedback.showToast('Validasi Gagal', 'Kolom tidak boleh kosong atau tidak valid.', 'error');
+      try { e.target.focus(); } catch(err) {}
+    }
+  }, true);
+
   document.addEventListener("DOMContentLoaded", () => {
     Navigation.init();
     TopbarSearch.init();
@@ -1961,3 +2107,5 @@
     }
   });
 })();
+
+

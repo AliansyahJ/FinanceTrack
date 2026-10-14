@@ -1,9 +1,9 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
 $userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
@@ -24,7 +24,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard FinanceTrack â€” ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
+  <meta name="description" content="Dashboard FinanceTrack — ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
     <title>Laporan &mdash; FinanceTrack</title>
   <script>
     window.__FT_BOOTSTRAP__ = <?= json_encode($bootstrapData, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
@@ -36,7 +36,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/style.css?v=1791587905545">
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
@@ -73,6 +73,18 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <a class="nav-item" href="anggaran.php">
             <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
             Anggaran
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="kategori.php">
+            <span class="material-symbols-outlined" aria-hidden="true">category</span>
+            Kategori
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="metode-pembayaran.php">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+            Metode Pembayaran
           </a>
         </li>
         <li>
@@ -144,10 +156,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
           <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
             <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
-            <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
+            <span data-user-name style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
-          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:8px;background:var(--surface-container-lowest);border:1px solid var(--surface-container);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:200px;z-index:100;">
+          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" >
             <a href="pengaturan.php" class="topbar-dropdown__item" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--on-surface);text-decoration:none;">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">person</span>
               <span>Profil / Pengaturan</span>
@@ -176,23 +188,30 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <p class="page-subtitle">Ringkasan kondisi kas dan kecenderungan keuanganmu sepanjang <?= $summary['periode'] ?>.</p>
         </div>
         <div class="page-header__actions">
-          <div class="segmented segmented--3" role="group" aria-label="Periode laporan">
-            <button type="button" class="segmented__btn is-active" data-range="bulanan">Bulanan</button>
-            <button type="button" class="segmented__btn" data-range="kuartalan">Kuartalan</button>
-            <button type="button" class="segmented__btn" data-range="tahunan">Tahunan</button>
+          <!-- Kapsul Kontrol Periode: Segmented + Tahun -->
+          <div class="period-capsule">
+            <div class="segmented segmented--3" role="group" aria-label="Periode laporan">
+              <button type="button" class="segmented__btn is-active" data-range="bulanan">Bulanan</button>
+              <button type="button" class="segmented__btn" data-range="kuartalan">Kuartalan</button>
+              <button type="button" class="segmented__btn" data-range="tahunan">Tahunan</button>
+            </div>
+            <div class="d-flex align-items-center" style="padding-right:4px;">
+              <label class="visually-hidden" for="laporan-tahun">Tahun laporan</label>
+              <select class="select" id="laporan-tahun" data-report-year style="min-height:34px;height:34px;padding:2px 28px 2px 10px;font-size:var(--text-xs);font-weight:600;border-radius:var(--radius-md);background-color:transparent;border:none;">
+                <option selected value="<?= date('Y') ?>">Tahun <?= date('Y') ?></option>
+                <option value="<?= date('Y') - 1 ?>">Tahun <?= date('Y') - 1 ?></option>
+                <option value="<?= date('Y') - 2 ?>">Tahun <?= date('Y') - 2 ?></option>
+              </select>
+            </div>
           </div>
-          <label class="visually-hidden" for="laporan-tahun">Tahun laporan</label>
-          <select class="select" id="laporan-tahun" style="width:auto" data-report-year>
-            <option selected value="<?= date('Y') ?>">Tahun <?= date('Y') ?></option>
-            <option value="<?= date('Y') - 1 ?>">Tahun <?= date('Y') - 1 ?></option>
-            <option value="<?= date('Y') - 2 ?>">Tahun <?= date('Y') - 2 ?></option>
-          </select>
-          <div class="d-flex align-items-center flex-wrap page-header__export-group" style="gap:var(--space-sm)">
-            <button type="button" class="btn btn--secondary text-primary" id="btnExportCsv" data-export-csv>
+
+          <!-- Grup Aksi Ekspor Dokumen -->
+          <div class="d-flex align-items-center gap-2 page-header__export-group">
+            <button type="button" class="btn btn--secondary text-primary" id="btnExportCsv" data-export-csv style="min-height:38px;height:38px;padding:0.375rem 0.875rem;font-size:var(--text-sm);">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">table_view</span>
-              Ekspor Excel (CSV)
+              Ekspor CSV
             </button>
-            <button type="button" class="btn btn--primary" id="btnExportPdf" data-export-pdf>
+            <button type="button" class="btn btn--primary" id="btnExportPdf" data-export-pdf style="min-height:38px;height:38px;padding:0.375rem 1rem;font-size:var(--text-sm);">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">picture_as_pdf</span>
               Unduh PDF
             </button>
@@ -203,11 +222,11 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
       <!-- Ringkasan -->
       <section aria-labelledby="ringkasan-heading">
         <h2 class="visually-hidden" id="ringkasan-heading">Ringkasan keuangan</h2>
-        <div class="grid grid--4">
-          <article class="summary-card">
+        <div class="grid grid--4" style="gap:var(--space-md)">
+          <article class="summary-card interactive-stat-card" style="background:linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(16, 185, 129, 0.22);transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
             <div class="summary-card__top">
-              <p class="summary-card__label">Uang Saku &amp; Pemasukan (Okt)</p>
-              <span class="icon-box icon-box--primary" aria-hidden="true">
+              <p class="summary-card__label" style="color:#059669;font-weight:700">Uang Saku &amp; Pemasukan (Okt)</p>
+              <span class="icon-box icon-box--success" style="width:32px;height:32px;border-radius:8px;background:rgba(16, 185, 129, 0.14);color:#059669" aria-hidden="true">
                 <span class="material-symbols-outlined icon-sm">account_balance_wallet</span>
               </span>
             </div>
@@ -223,10 +242,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             </div>
           </article>
 
-          <article class="summary-card">
+          <article class="summary-card interactive-stat-card" style="background:linear-gradient(145deg, rgba(239, 68, 68, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(239, 68, 68, 0.22);transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
             <div class="summary-card__top">
-              <p class="summary-card__label">Total Pengeluaran (Okt)</p>
-              <span class="icon-box icon-box--danger" aria-hidden="true">
+              <p class="summary-card__label" style="color:var(--danger);font-weight:700">Total Pengeluaran (Okt)</p>
+              <span class="icon-box icon-box--danger" style="width:32px;height:32px;border-radius:8px;background:rgba(239, 68, 68, 0.14);color:var(--danger)" aria-hidden="true">
                 <span class="material-symbols-outlined icon-sm">shopping_bag</span>
               </span>
             </div>
@@ -242,10 +261,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             </div>
           </article>
 
-          <article class="summary-card">
+          <article class="summary-card interactive-stat-card" style="background:linear-gradient(145deg, rgba(2, 132, 199, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(2, 132, 199, 0.22);transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
             <div class="summary-card__top">
-              <p class="summary-card__label">Sisa Tabungan Bersih</p>
-              <span class="icon-box icon-box--success" aria-hidden="true">
+              <p class="summary-card__label" style="color:var(--primary);font-weight:700">Sisa Tabungan Bersih</p>
+              <span class="icon-box icon-box--primary" style="width:32px;height:32px;border-radius:8px;background:rgba(2, 132, 199, 0.14);color:var(--primary)" aria-hidden="true">
                 <span class="material-symbols-outlined icon-sm">savings</span>
               </span>
             </div>
@@ -258,15 +277,15 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             </div>
           </article>
 
-          <article class="summary-card">
+          <article class="summary-card interactive-stat-card" style="background:linear-gradient(145deg, rgba(245, 158, 11, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(245, 158, 11, 0.22);transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
             <div class="summary-card__top">
-              <p class="summary-card__label">Rata-rata Belanja Harian</p>
-              <span class="icon-box icon-box--primary" aria-hidden="true">
+              <p class="summary-card__label" style="color:#d97706;font-weight:700">Rata-rata Belanja Harian</p>
+              <span class="icon-box icon-box--warning" style="width:32px;height:32px;border-radius:8px;background:rgba(245, 158, 11, 0.14);color:#d97706" aria-hidden="true">
                 <span class="material-symbols-outlined icon-sm">calendar_today</span>
               </span>
             </div>
             <div>
-              <p class="summary-card__value numeric text-primary" data-report-avg-daily>Rp 0</p>
+              <p class="summary-card__value numeric" data-report-avg-daily style="color:#d97706">Rp 0</p>
               <p class="summary-card__meta">Di bawah batas Rp 75.000/hari</p>
             </div>
           </article>
@@ -339,7 +358,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             <span class="material-symbols-outlined callout__icon icon-sm" aria-hidden="true">verified</span>
             <div>
               <p class="callout__title">Rasio aman</p>
-              <p class="callout__text">Pengeluaranmu 79,6% dari pemasukan â€” masih di bawah batas aman 90% yang disarankan.</p>
+              <p class="callout__text">Pengeluaranmu 79,6% dari pemasukan — masih di bawah batas aman 90% yang disarankan.</p>
             </div>
           </div>
         </section>
@@ -350,7 +369,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="row row--between row--wrap" style="margin-bottom:var(--space-lg)">
           <div>
             <h2 class="section-title" id="rekap-bulan-heading">Rekap 6 Bulan Terakhir</h2>
-            <p class="page-subtitle">Perbandingan pemasukan dan pengeluaran bulanan (Mei â€” <?= $summary['periode'] ?>).</p>
+            <p class="page-subtitle">Perbandingan pemasukan dan pengeluaran bulanan (Mei — <?= $summary['periode'] ?>).</p>
           </div>
           <div class="chart-legend">
             <span class="chart-legend__item"><i class="chart-legend__swatch" style="background:var(--primary)"></i> Pemasukan</span>
@@ -412,7 +431,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
   <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/script.js?v=1791587905545"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var D = FinanceTrackData;
@@ -593,26 +612,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     });
   </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const userMenuBtn = document.querySelector('[data-user-menu-trigger]');
-    const userMenuDropdown = document.querySelector('[data-user-menu-dropdown]');
-    if (userMenuBtn && userMenuDropdown) {
-      userMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = userMenuBtn.getAttribute('aria-expanded') === 'true';
-        userMenuBtn.setAttribute('aria-expanded', !isExpanded);
-        userMenuDropdown.style.display = isExpanded ? 'none' : 'block';
-      });
-      document.addEventListener('click', (e) => {
-        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-          userMenuBtn.setAttribute('aria-expanded', 'false');
-          userMenuDropdown.style.display = 'none';
-        }
-      });
-    }
-  });
-</script>
+
 </body>
 </html>
 

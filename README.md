@@ -8,6 +8,7 @@ FinanceTrack adalah aplikasi web pencatatan keuangan pribadi dan pemantauan angg
 
 ### 1. Prasyarat
 - **XAMPP** (versi dengan PHP 8.1+ dan MySQL / MariaDB aktif)
+- Ekstensi PHP **GD** harus diaktifkan (hapus titik koma `;` pada `;extension=gd` di `php.ini`) untuk fitur upload foto profil.
 - Apache Web Server (Port 80)
 - MySQL Server (Port 3306)
 
