@@ -36,6 +36,18 @@ CREATE TABLE IF NOT EXISTS `categories` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------------------------
+-- Table: payment_methods
+-- ----------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `payment_methods` (
+  `id` VARCHAR(50) PRIMARY KEY,
+  `name` VARCHAR(100) NOT NULL,
+  `type` ENUM('cash', 'ewallet', 'bank', 'other') NOT NULL DEFAULT 'other',
+  `icon` VARCHAR(50) NOT NULL DEFAULT 'account_balance_wallet',
+  `color` VARCHAR(20) NOT NULL DEFAULT '#0284c7',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------------------------
 -- Table: transactions
 -- ----------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS `transactions` (

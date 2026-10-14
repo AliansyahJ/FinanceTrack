@@ -27,7 +27,11 @@ try {
     $pdo->exec($sql);
     echo "[OK] Schema & seed data berhasil diimpor ke database '" . DB_NAME . "'!\n";
 
-    // 4. Verifikasi demo account
+    // 4. Sinkronisasi Data Dummy Mahasiswa Realistis
+    require_once __DIR__ . '/seed_demo.php';
+    seedRealisticStudentData();
+
+    // 5. Verifikasi demo account
     $pdo->exec("USE `" . DB_NAME . "`");
     $stmt = $pdo->query("SELECT id, name, email, role FROM users WHERE email = 'demo@financetrack.test'");
     $demoUser = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -43,7 +47,7 @@ try {
     echo "[INFO] Total Categories: {$catCount}\n";
     echo "[INFO] Total Transactions: {$txCount}\n";
     echo "[INFO] Total Budgets: {$bgCount}\n";
-    echo "=== Migrasi Selesai dengan Sukses ===\n";
+    echo "=== Migrasi & Seeding Selesai dengan Sukses ===\n";
 
 } catch (PDOException $e) {
     echo "[ERROR] Database Error: " . $e->getMessage() . "\n";
