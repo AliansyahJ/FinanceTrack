@@ -724,6 +724,12 @@ $pctAnggaran = $totAnggaran > 0 ? round(($sisAnggaran / $totAnggaran) * 100) : 0
           return;
         }
 
+        var methodRegex = /^[\p{L}0-9\s\.\-]+$/u;
+        if (!methodRegex.test(name)) {
+          F.showToast("Validasi Gagal", "Nama metode pembayaran hanya boleh berisi huruf, angka, dan spasi.", "error");
+          return;
+        }
+
         var url = id ? "../api/payment_methods/update.php" : "../api/payment_methods/create.php";
         var formData = new FormData();
         if (id) formData.append("id", id);

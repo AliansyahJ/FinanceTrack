@@ -18,6 +18,46 @@ $summary = $bootstrapData['summary'] ?? [
     'hariDalamBulan' => (int)date('t')
 ];
 $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran'] / $summary['totalAnggaran']) * 100) : 0;
+
+// Perhitungan metrik tambahan untuk area tren
+$trendData = $bootstrapData['trend'] ?? null;
+$avgIncome = 0;
+$avgExpense = 0;
+$maxSurplus = 0;
+$maxSurplusMonth = 'Oktober ' . date('Y');
+$savingsRate = 0;
+
+if ($trendData && !empty($trendData['pemasukan'])) {
+    $count = count($trendData['pemasukan']);
+    $sumInc = array_sum($trendData['pemasukan']);
+    $sumExp = array_sum($trendData['pengeluaran']);
+    $avgIncome = $count > 0 ? round($sumInc / $count) : 0;
+    $avgExpense = $count > 0 ? round($sumExp / $count) : 0;
+    
+    foreach ($trendData['labels'] as $idx => $lbl) {
+        $surplus = ($trendData['pemasukan'][$idx] ?? 0) - ($trendData['pengeluaran'][$idx] ?? 0);
+        if ($surplus >= $maxSurplus) {
+            $maxSurplus = $surplus;
+            $maxSurplusMonth = $lbl;
+        }
+    }
+    
+    if ($sumInc > 0) {
+        $savingsRate = round((($sumInc - $sumExp) / $sumInc) * 100, 1);
+    }
+}
+
+// Deteksi kategori over budget (terpakai >= batas)
+$overBudgets = [];
+if (!empty($bootstrapData['budgets'])) {
+    foreach ($bootstrapData['budgets'] as $b) {
+        $terpakai = (int)($b['terpakai'] ?? 0);
+        $batas = (int)($b['batas'] ?? 0);
+        if ($batas > 0 && $terpakai >= $batas) {
+            $overBudgets[] = $b;
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -150,9 +190,13 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         </form>
       </div>
       <div class="d-flex align-items-center" style="gap:var(--space-md);flex-shrink:0;">
-        <button type="button" class="btn btn--ghost btn--icon" aria-label="Notifikasi" style="position:relative;height:40px;width:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <button type="button" class="btn btn--ghost btn--icon" id="btnNotificationBell" aria-label="Notifikasi Peringatan Anggaran" title="<?= !empty($overBudgets) ? 'Ada anggaran yang melebihi batas!' : 'Notifikasi' ?>" style="position:relative;height:40px;width:40px;display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer">
           <span class="material-symbols-outlined" aria-hidden="true">notifications</span>
-          <span class="topbar__dot" aria-hidden="true"></span>
+          <?php if (!empty($overBudgets)): ?>
+            <span class="topbar__dot" aria-hidden="true" style="background:#e11d48;box-shadow:0 0 0 2px #fff, 0 0 8px rgba(225,29,72,0.8)"></span>
+          <?php else: ?>
+            <span class="topbar__dot" aria-hidden="true"></span>
+          <?php endif; ?>
         </button>
         <div class="topbar__user-menu" data-user-menu style="position:relative;flex-shrink:0;">
           <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
@@ -300,6 +344,34 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
               <canvas data-chart-trend role="img"
                       aria-label="Grafik tren pemasukan dan pengeluaran 6 bulan terakhir"></canvas>
             </div>
+
+            <!-- Metrik Statistik Finansial Tambahan (Memanfaatkan Ruang Kosong Kartu Tren) -->
+            <div class="trend-insights-grid" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;margin-top:20px;padding-top:16px;border-top:1px solid var(--surface-container)">
+              <!-- Stat 1: Rata-Rata Bulanan -->
+              <div class="trend-stat-card" style="padding:12px 14px;background:var(--surface-container-low);border-radius:12px;border:1px solid var(--surface-container);display:flex;flex-direction:column;justify-content:center">
+                <p style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;margin:0 0 4px;letter-spacing:0.02em">Rata-Rata Masuk / Bln</p>
+                <p style="font-size:16px;font-weight:700;color:var(--primary);margin:0" data-trend-avg-income>Rp <?= number_format($avgIncome, 0, ',', '.') ?></p>
+                <span style="font-size:11px;color:var(--text-secondary);margin-top:2px">dari tren 6 bulan</span>
+              </div>
+              
+              <!-- Stat 2: Surplus Tertinggi -->
+              <div class="trend-stat-card" style="padding:12px 14px;background:var(--surface-container-low);border-radius:12px;border:1px solid var(--surface-container);display:flex;flex-direction:column;justify-content:center">
+                <p style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;margin:0 0 4px;letter-spacing:0.02em">Surplus Tertinggi</p>
+                <p style="font-size:16px;font-weight:700;color:#059669;margin:0" data-trend-max-surplus>+Rp <?= number_format($maxSurplus, 0, ',', '.') ?></p>
+                <span style="font-size:11px;color:#059669;font-weight:600;margin-top:2px" data-trend-surplus-month><?= htmlspecialchars($maxSurplusMonth) ?></span>
+              </div>
+
+              <!-- Stat 3: Rasio Tabungan / Tingkat Hemat -->
+              <div class="trend-stat-card" style="padding:12px 14px;background:var(--surface-container-low);border-radius:12px;border:1px solid var(--surface-container);display:flex;flex-direction:column;justify-content:center">
+                <p style="font-size:11px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;margin:0 0 4px;letter-spacing:0.02em">Rasio Tabungan</p>
+                <p style="font-size:16px;font-weight:700;color:var(--secondary);margin:0" data-trend-savings-rate><?= $savingsRate ?>%</p>
+                <div style="margin-top:4px">
+                  <span class="badge <?= $savingsRate >= 50 ? 'badge--income' : ($savingsRate >= 20 ? 'badge--neutral' : 'badge--expense') ?>" style="font-size:10px;padding:2px 8px;font-weight:600" data-trend-savings-badge>
+                    <?= $savingsRate >= 50 ? 'Sangat Sehat' : ($savingsRate >= 20 ? 'Cukup Terkendali' : 'Perlu Dihemat') ?>
+                  </span>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -428,8 +500,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js?v=1791587905545"></script>
+  <script src="../assets/js/api.js?v=<?= time() ?>"></script>
+  <script src="../assets/js/script.js?v=<?= time() ?>"></script>
   <script>
     /* Render konten dinamis Dashboard dari mock data. */
     document.addEventListener("DOMContentLoaded", function () {
@@ -556,11 +628,126 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     </button>
   </div>
 
+  <!-- MODAL POPUP PERINGATAN ANGGARAN -->
+  <div class="modal-backdrop" id="modalBudgetAlert" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.65);backdrop-filter:blur(8px);z-index:99999;align-items:center;justify-content:center;padding:16px;">
+    <div class="modal-dialog-custom" style="background:rgba(255,255,255,0.98);backdrop-filter:blur(20px);border:1px solid rgba(225,29,72,0.3);border-radius:24px;box-shadow:0 25px 50px -12px rgba(225,29,72,0.3);max-width:540px;width:100%;overflow:hidden;">
+      <div style="background:linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%);border-bottom:1px solid rgba(225,29,72,0.18);padding:24px 28px;position:relative">
+        <div style="display:flex;align-items:flex-start;gap:16px">
+          <div style="width:54px;height:54px;border-radius:16px;background:linear-gradient(135deg, #e11d48, #be123c);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 10px 20px -5px rgba(225,29,72,0.4)">
+            <span class="material-symbols-outlined" style="font-size:30px">notifications_active</span>
+          </div>
+          <div style="flex:1">
+            <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(225,29,72,0.12);color:#be123c;padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">
+              <span class="material-symbols-outlined" style="font-size:14px">warning</span>
+              Peringatan Batas Anggaran
+            </div>
+            <h3 style="font-size:19px;font-weight:700;color:#881337;margin:0 0 4px;line-height:1.3">Pengeluaran Melebihi Batas Anggaran!</h3>
+            <p style="font-size:13px;color:#9f1239;margin:0;line-height:1.5">Sistem mendeteksi 1 atau lebih kategori pengeluaran bulan ini telah mencapai atau melampaui batas anggaran yang Anda tetapkan.</p>
+          </div>
+          <button type="button" class="btn btn--icon btn--ghost" id="btnCloseBudgetAlert" aria-label="Tutup" style="color:#be123c;margin-top:-6px;margin-right:-8px">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+      <div style="padding:24px 28px">
+        <p style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px">Kategori yang Melebihi Batas:</p>
+        <div id="budgetAlertList" style="display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto;margin-bottom:20px">
+          <?php if (!empty($overBudgets)): ?>
+            <?php foreach ($overBudgets as $ob): 
+              $cat = null;
+              if (!empty($bootstrapData['categories'])) {
+                  foreach ($bootstrapData['categories'] as $c) {
+                      if ($c['id'] === $ob['kategoriId']) { $cat = $c; break; }
+                  }
+              }
+              $catName = $cat ? htmlspecialchars($cat['nama']) : 'Kategori';
+              $catIcon = $ob['icon'] ?? 'wifi';
+              $pct = round(($ob['terpakai'] / max(1, $ob['batas'])) * 100);
+            ?>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px">
+                <div style="display:flex;align-items:center;gap:12px">
+                  <span class="material-symbols-outlined" style="font-size:24px;color:#e11d48"><?= htmlspecialchars($catIcon) ?></span>
+                  <div>
+                    <strong style="display:block;font-size:14px;color:#881337"><?= $catName ?></strong>
+                    <span style="font-size:12px;color:#9f1239">Terpakai: Rp <?= number_format($ob['terpakai'], 0, ',', '.') ?> dari Rp <?= number_format($ob['batas'], 0, ',', '.') ?></span>
+                  </div>
+                </div>
+                <span class="badge badge--expense" style="font-size:12px;font-weight:700;padding:4px 8px"><?= $pct ?>%</span>
+              </div>
+            <?php endforeach; ?>
+          <?php else: ?>
+            <p style="font-size:13px;color:var(--text-secondary);text-align:center;padding:16px">Semua kategori pengeluaran saat ini masih berada dalam batas aman.</p>
+          <?php endif; ?>
+        </div>
+        <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:12px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;margin-bottom:24px">
+          <span class="material-symbols-outlined" style="color:#d97706;font-size:20px;flex-shrink:0;margin-top:2px">lightbulb</span>
+          <p style="font-size:12px;color:#92400e;margin:0;line-height:1.5">
+            <strong>Saran Finansial:</strong> Tahan pengeluaran pada kategori ini atau sesuaikan kembali batas anggaran Anda di halaman Manajemen Anggaran agar keuangan tetap aman.
+          </p>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px">
+          <button type="button" class="btn btn--secondary" id="btnDismissBudgetAlert" style="font-size:13px">
+            Saya Mengerti
+          </button>
+          <a href="anggaran.php" class="btn btn--primary" style="font-size:13px;background:linear-gradient(135deg, #e11d48, #be123c);border-color:#be123c;box-shadow:0 4px 12px rgba(225,29,72,0.3)">
+            <span class="material-symbols-outlined icon-sm">pie_chart</span>
+            Kelola Anggaran
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script>
     document.addEventListener("DOMContentLoaded", function() {
+      // Alert Modal logic
+      var modalAlert = document.getElementById("modalBudgetAlert");
+      var btnBell = document.getElementById("btnNotificationBell");
+      var btnCloseAlert = document.getElementById("btnCloseBudgetAlert");
+      var btnDismissAlert = document.getElementById("btnDismissBudgetAlert");
+      var hasOverBudget = <?= !empty($overBudgets) ? 'true' : 'false' ?>;
+
+      function openBudgetModal() {
+        if (!modalAlert) return;
+        modalAlert.style.display = "flex";
+      }
+
+      function closeBudgetModal() {
+        if (!modalAlert) return;
+        modalAlert.style.display = "none";
+        try {
+          sessionStorage.setItem("ft_budget_alert_dismissed", "true");
+        } catch(e) {}
+      }
+
+      if (btnBell) {
+        btnBell.addEventListener("click", function(e) {
+          e.preventDefault();
+          openBudgetModal();
+        });
+      }
+
+      if (btnCloseAlert) btnCloseAlert.addEventListener("click", closeBudgetModal);
+      if (btnDismissAlert) btnDismissAlert.addEventListener("click", closeBudgetModal);
+      if (modalAlert) {
+        modalAlert.addEventListener("click", function(e) {
+          if (e.target === modalAlert) closeBudgetModal();
+        });
+      }
+
+      // Otomatis buka jika ada overbudget dan belum di-dismiss pada sesi ini
+      try {
+        var isDismissed = sessionStorage.getItem("ft_budget_alert_dismissed");
+        if (hasOverBudget && !isDismissed) {
+          setTimeout(function() {
+            openBudgetModal();
+          }, 600);
+        }
+      } catch(e) {}
+
+      // Interactive stat card navigation
       document.querySelectorAll("[data-dash-nav]").forEach(function(card) {
         card.addEventListener("click", function(e) {
-          // If click was on balance toggle, don't navigate
           if (e.target.closest("[data-balance-toggle]")) return;
           var url = this.getAttribute("data-dash-nav");
           if (url) window.location.href = url;

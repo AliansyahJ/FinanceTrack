@@ -381,8 +381,8 @@ $pctAnggaran = $totAnggaran > 0 ? round(($sisAnggaran / $totAnggaran) * 100) : 0
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/api.js?v=<?= time() ?>"></script>
+  <script src="../assets/js/script.js?v=<?= time() ?>"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var D = FinanceTrackData;
@@ -674,6 +674,12 @@ $pctAnggaran = $totAnggaran > 0 ? round(($sisAnggaran / $totAnggaran) * 100) : 0
 
         if (!name) {
           F.showToast("Data Kurang", "Nama kategori wajib diisi.", "error");
+          return;
+        }
+
+        var catNameRegex = /^[\p{L}\s&]+$/u;
+        if (!catNameRegex.test(name)) {
+          F.showToast("Validasi Gagal", "Nama kategori hanya boleh berisi huruf dan spasi.", "error");
           return;
         }
 

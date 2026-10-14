@@ -502,8 +502,8 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
-  <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js?v=1791587905545"></script>
+  <script src="../assets/js/api.js?v=<?= time() ?>"></script>
+  <script src="../assets/js/script.js?v=<?= time() ?>"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var D = FinanceTrackData;
@@ -539,6 +539,12 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         var emailVal = document.getElementById('set-email').value.trim();
         if (!nameVal || !emailVal) {
             F.showToast('Data tidak valid', 'Nama lengkap dan email wajib diisi.', 'error');
+            return;
+        }
+
+        var nameRegex = /^[\p{L}\s]+$/u;
+        if (!nameRegex.test(nameVal)) {
+            F.showToast('Validasi Gagal', 'Nama lengkap hanya boleh berisi huruf dan spasi.', 'error');
             return;
         }
 

@@ -1205,9 +1205,21 @@
       ].forEach((attr) => {
         const el = Utils.qs(`[${attr}]`);
         if (el) {
-          el.addEventListener("input", () =>
-            el.closest(".field")?.classList.remove("has-error")
-          );
+          el.addEventListener("input", () => {
+            if (attr === "data-field-desc") {
+              const val = el.value.trim();
+              const field = el.closest(".field");
+              const errEl = field?.querySelector(".field__error");
+              if (val && !/^[\p{L}\s]+$/u.test(val)) {
+                field?.classList.add("has-error");
+                if (errEl) errEl.textContent = "Deskripsi hanya boleh berisi huruf dan spasi.";
+                return;
+              } else {
+                if (errEl) errEl.textContent = "Deskripsi wajib diisi dan hanya boleh berisi huruf dan spasi.";
+              }
+            }
+            el.closest(".field")?.classList.remove("has-error");
+          });
           el.addEventListener("change", () =>
             el.closest(".field")?.classList.remove("has-error")
           );
@@ -1355,8 +1367,19 @@
           amountEl?.closest(".field")?.classList.remove("has-error");
         }
 
+        const alphaSpaceRegex = /^[\p{L}\s]+$/u;
         if (!desc) {
           descEl?.closest(".field")?.classList.add("has-error");
+          valid = false;
+        } else if (!alphaSpaceRegex.test(desc)) {
+          descEl?.closest(".field")?.classList.add("has-error");
+          const errEl = descEl.closest(".field")?.querySelector(".field__error");
+          if (errEl) errEl.textContent = "Deskripsi transaksi hanya boleh berisi huruf dan spasi.";
+          Feedback.showToast(
+            "Validasi Gagal",
+            "Deskripsi transaksi hanya boleh berisi huruf dan spasi.",
+            "error"
+          );
           valid = false;
         } else {
           descEl?.closest(".field")?.classList.remove("has-error");
@@ -1415,11 +1438,12 @@
         if (saveMoreBtn) saveMoreBtn.disabled = true;
 
         if (this.editingId) {
+          let apiRes = null;
           if (window.FinanceTrackAPI) {
             try {
-              const res = await window.FinanceTrackAPI.updateTransaction(this.editingId, txData, receiptFile);
-              if (res && res.data && res.data.struk) {
-                txData.receipt_path = res.data.struk;
+              apiRes = await window.FinanceTrackAPI.updateTransaction(this.editingId, txData, receiptFile);
+              if (apiRes && apiRes.data && apiRes.data.struk) {
+                txData.receipt_path = apiRes.data.struk;
               }
             } catch (err) {
               if (submitBtn) submitBtn.disabled = false;
@@ -1431,6 +1455,69 @@
           if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.updateTransaction) {
             FinanceTrackData.updateTransaction(this.editingId, txData);
           }
+          if (submitBtn) submitBtn.disabled = false;
+          if (saveMoreBtn) saveMoreBtn.disabled = false;
+
+          // Cek apakah update transaksi ini menyebabkan atau berada dalam kondisi over-budget
+          let isOver = false;
+          let alertCategoryData = null;
+          if (apiRes && apiRes.data && apiRes.data.budgetAlert && apiRes.data.budgetAlert.isOver) {
+            isOver = true;
+            alertCategoryData = apiRes.data.budgetAlert;
+          }
+          if (!isIncome && typeof FinanceTrackData !== "undefined" && FinanceTrackData.budgets) {
+            const b = FinanceTrackData.budgets.find((x) => String(x.kategoriId) === String(catId));
+            if (b && Number(b.batas) > 0) {
+              const oldTx = FinanceTrackData.getTransaction(this.editingId);
+              const oldAmt = oldTx ? Number(oldTx.jumlah) : 0;
+              const newSpent = alertCategoryData
+                ? Number(alertCategoryData.terpakai)
+                : (Number(b.terpakai) || 0) - oldAmt + amount;
+              b.terpakai = newSpent;
+              if (newSpent >= Number(b.batas)) {
+                isOver = true;
+                if (!alertCategoryData) {
+                  const cObj = FinanceTrackData.getCategory(catId);
+                  alertCategoryData = {
+                    kategoriId: catId,
+                    nama: cObj ? cObj.nama : b.nama,
+                    icon: cObj ? cObj.icon : b.icon,
+                    terpakai: newSpent,
+                    batas: Number(b.batas),
+                    persen: Math.round((newSpent / Number(b.batas)) * 100),
+                    isOver: true,
+                  };
+                }
+              }
+            } else if (alertCategoryData && alertCategoryData.isOver) {
+              FinanceTrackData.budgets.push({
+                kategoriId: catId,
+                nama: alertCategoryData.nama,
+                icon: alertCategoryData.icon,
+                terpakai: Number(alertCategoryData.terpakai),
+                batas: Number(alertCategoryData.batas),
+              });
+            }
+          }
+
+          if (isOver) {
+            sessionStorage.setItem("ft_trigger_budget_alert", JSON.stringify(alertCategoryData || { isOver: true }));
+            sessionStorage.removeItem("ft_budget_alert_dismissed");
+            const modal = GlobalBudgetAlert.openModal(null, alertCategoryData);
+            const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
+            const handleCloseAndRedirect = () => {
+              sessionStorage.removeItem("ft_trigger_budget_alert");
+              sessionStorage.setItem("ft_budget_alert_dismissed", "true");
+              window.location.href = `transaksi${ext}`;
+            };
+            const btnDismiss = modal ? modal.querySelector("#btnDismissBudgetAlert") : null;
+            const btnClose = modal ? modal.querySelector("#btnCloseBudgetAlert") : null;
+            if (btnDismiss) btnDismiss.onclick = handleCloseAndRedirect;
+            if (btnClose) btnClose.onclick = handleCloseAndRedirect;
+            if (modal) modal.onclick = (e) => { if (e.target === modal) handleCloseAndRedirect(); };
+            return;
+          }
+
           try {
             sessionStorage.setItem(
               "ft_toast",
@@ -1446,9 +1533,10 @@
         }
 
         // Mode Tambah Transaksi Baru
+        let apiRes = null;
         if (window.FinanceTrackAPI) {
           try {
-            const apiRes = await window.FinanceTrackAPI.createTransaction(txData, receiptFile);
+            apiRes = await window.FinanceTrackAPI.createTransaction(txData, receiptFile);
             if (apiRes && apiRes.data) {
               txData.id = apiRes.data.id;
               if (apiRes.data.struk) {
@@ -1468,6 +1556,83 @@
 
         if (submitBtn) submitBtn.disabled = false;
         if (saveMoreBtn) saveMoreBtn.disabled = false;
+
+        // Cek apakah transaksi pengeluaran baru ini menyebabkan atau berada dalam kondisi over-budget
+        let isOver = false;
+        let alertCategoryData = null;
+        if (apiRes && apiRes.data && apiRes.data.budgetAlert && apiRes.data.budgetAlert.isOver) {
+          isOver = true;
+          alertCategoryData = apiRes.data.budgetAlert;
+        }
+        if (!isIncome && typeof FinanceTrackData !== "undefined" && FinanceTrackData.budgets) {
+          const b = FinanceTrackData.budgets.find((x) => String(x.kategoriId) === String(catId));
+          if (b && Number(b.batas) > 0) {
+            const newSpent = alertCategoryData
+              ? Number(alertCategoryData.terpakai)
+              : (Number(b.terpakai) || 0) + amount;
+            b.terpakai = newSpent;
+            if (newSpent >= Number(b.batas)) {
+              isOver = true;
+              if (!alertCategoryData) {
+                const cObj = FinanceTrackData.getCategory(catId);
+                alertCategoryData = {
+                  kategoriId: catId,
+                  nama: cObj ? cObj.nama : b.nama,
+                  icon: cObj ? cObj.icon : b.icon,
+                  terpakai: newSpent,
+                  batas: Number(b.batas),
+                  persen: Math.round((newSpent / Number(b.batas)) * 100),
+                  isOver: true,
+                };
+              }
+            }
+          } else if (alertCategoryData && alertCategoryData.isOver) {
+            FinanceTrackData.budgets.push({
+              kategoriId: catId,
+              nama: alertCategoryData.nama,
+              icon: alertCategoryData.icon,
+              terpakai: Number(alertCategoryData.terpakai),
+              batas: Number(alertCategoryData.batas),
+            });
+          }
+        }
+
+        if (isOver) {
+          sessionStorage.setItem("ft_trigger_budget_alert", JSON.stringify(alertCategoryData || { isOver: true }));
+          sessionStorage.removeItem("ft_budget_alert_dismissed");
+          const modal = GlobalBudgetAlert.openModal(null, alertCategoryData);
+
+          if (addMore) {
+            Feedback.showToast(
+              "Transaksi tersimpan",
+              `${Utils.formatRupiah(amount)} untuk "${desc}" tercatat. Pengeluaran melebihi batas anggaran!`,
+              "warning"
+            );
+            const closeAndReset = () => {
+              if (modal) modal.style.display = "none";
+              resetFormDefaults();
+              amountEl?.focus();
+            };
+            const btnDismiss = modal ? modal.querySelector("#btnDismissBudgetAlert") : null;
+            const btnClose = modal ? modal.querySelector("#btnCloseBudgetAlert") : null;
+            if (btnDismiss) btnDismiss.onclick = closeAndReset;
+            if (btnClose) btnClose.onclick = closeAndReset;
+            if (modal) modal.onclick = (e) => { if (e.target === modal) closeAndReset(); };
+          } else {
+            const ext = window.location.pathname.endsWith(".php") ? ".php" : ".html";
+            const handleCloseAndRedirect = () => {
+              sessionStorage.removeItem("ft_trigger_budget_alert");
+              sessionStorage.setItem("ft_budget_alert_dismissed", "true");
+              window.location.href = `transaksi${ext}`;
+            };
+            const btnDismiss = modal ? modal.querySelector("#btnDismissBudgetAlert") : null;
+            const btnClose = modal ? modal.querySelector("#btnCloseBudgetAlert") : null;
+            if (btnDismiss) btnDismiss.onclick = handleCloseAndRedirect;
+            if (btnClose) btnClose.onclick = handleCloseAndRedirect;
+            if (modal) modal.onclick = (e) => { if (e.target === modal) handleCloseAndRedirect(); };
+          }
+          return;
+        }
 
         if (addMore) {
           Feedback.showToast(
@@ -1724,7 +1889,7 @@
           maintainAspectRatio: false,
           interaction: { mode: "index", intersect: false },
           plugins: {
-            legend: { display: true, position: "top" },
+            legend: { display: false },
             tooltip: {
               ...this.getTooltip(),
               callbacks: {
@@ -1746,6 +1911,8 @@
           },
         },
       });
+
+      this.updateTrendInsights(t.labels, t.pemasukan, t.pengeluaran);
     },
 
     renderExpenseDonut() {
@@ -2008,11 +2175,50 @@
         chart.data.datasets[1].data = t.pengeluaran;
       }
       chart.update();
+      this.updateTrendInsights(chart.data.labels, chart.data.datasets[0].data, chart.data.datasets[1].data);
       Feedback.showToast(
         "Periode grafik diperbarui",
         "Menampilkan tren keuangan " + period + ".",
         "trending_up"
       );
+    },
+
+    updateTrendInsights(labels, incData, expData) {
+      const avgIncEl = Utils.qs("[data-trend-avg-income]");
+      const maxSurplusEl = Utils.qs("[data-trend-max-surplus]");
+      const surplusMonthEl = Utils.qs("[data-trend-surplus-month]");
+      const savingsRateEl = Utils.qs("[data-trend-savings-rate]");
+      const savingsBadgeEl = Utils.qs("[data-trend-savings-badge]");
+
+      if (!avgIncEl && !maxSurplusEl) return;
+
+      const count = incData ? incData.length : 0;
+      const sumInc = incData ? incData.reduce((a, b) => a + b, 0) : 0;
+      const sumExp = expData ? expData.reduce((a, b) => a + b, 0) : 0;
+      const avgInc = count > 0 ? Math.round(sumInc / count) : 0;
+
+      let maxSurplus = 0;
+      let maxMonth = labels ? labels[labels.length - 1] : "";
+      if (labels && incData && expData) {
+        labels.forEach((lbl, idx) => {
+          const s = (incData[idx] || 0) - (expData[idx] || 0);
+          if (s >= maxSurplus) {
+            maxSurplus = s;
+            maxMonth = lbl;
+          }
+        });
+      }
+
+      const savingsRate = sumInc > 0 ? (((sumInc - sumExp) / sumInc) * 100).toFixed(1) : 0;
+
+      if (avgIncEl) avgIncEl.textContent = Utils.formatRupiah(avgInc);
+      if (maxSurplusEl) maxSurplusEl.textContent = (maxSurplus >= 0 ? "+ " : "- ") + Utils.formatRupiah(Math.abs(maxSurplus));
+      if (surplusMonthEl) surplusMonthEl.textContent = maxMonth;
+      if (savingsRateEl) savingsRateEl.textContent = savingsRate + "%";
+      if (savingsBadgeEl) {
+        savingsBadgeEl.className = "badge " + (savingsRate >= 50 ? "badge--income" : savingsRate >= 20 ? "badge--neutral" : "badge--expense");
+        savingsBadgeEl.textContent = savingsRate >= 50 ? "Sangat Sehat" : savingsRate >= 20 ? "Cukup Terkendali" : "Perlu Dihemat";
+      }
     },
   };
 
@@ -2053,14 +2259,284 @@
       });
     },
   };
+  /* =======================================================================
+     9. GLOBAL NOTIFICATION BELL & BUDGET ALERT MODAL (Cross-Page)
+     ======================================================================= */
+  const GlobalBudgetAlert = {
+    init() {
+      const bells = Utils.qsa('button[aria-label*="Notifikasi"], #btnNotificationBell');
+      if (!bells.length) return;
+
+      // Cek apakah ada kategori overbudget dari data bootstrapping
+      const overBudgets = this.getOverBudgets();
+
+      // Pastikan modal ada di DOM; jika belum ada buat secara dinamis
+      let modal = Utils.qs("#modalBudgetAlert");
+      if (!modal) {
+        modal = this.createModal(overBudgets);
+        document.body.appendChild(modal);
+      } else {
+        this.bindEvents(modal);
+      }
+
+      // Update semua tombol lonceng
+      bells.forEach((bell) => {
+        bell.style.cursor = "pointer";
+        const dot = bell.querySelector(".topbar__dot");
+        if (overBudgets.length > 0) {
+          bell.title = `Peringatan: ${overBudgets.length} kategori melebihi batas anggaran! (Klik untuk lihat)`;
+          if (dot) {
+            dot.style.background = "#e11d48";
+            dot.style.boxShadow = "0 0 0 2px #fff, 0 0 8px rgba(225,29,72,0.8)";
+          }
+        } else {
+          bell.title = "Notifikasi: Semua anggaran dalam batas aman";
+          if (dot) {
+            dot.style.background = "var(--primary)";
+            dot.style.boxShadow = "none";
+          }
+        }
+
+        bell.addEventListener("click", (e) => {
+          e.preventDefault();
+          this.openModal(modal);
+        });
+      });
+
+      // Otomatis buka jika ada pemicu baru dari transaksi atau di Dashboard sesi pertama
+      const rawTrigger = sessionStorage.getItem("ft_trigger_budget_alert");
+      let triggerObj = null;
+      if (rawTrigger) {
+        try { triggerObj = JSON.parse(rawTrigger); } catch(e) {}
+      }
+      if (rawTrigger && (overBudgets.length > 0 || (triggerObj && triggerObj.isOver))) {
+        sessionStorage.removeItem("ft_trigger_budget_alert");
+        sessionStorage.removeItem("ft_budget_alert_dismissed");
+        setTimeout(() => {
+          this.openModal(modal, triggerObj);
+        }, 350);
+      } else if (window.location.pathname.includes("dashboard") && overBudgets.length > 0) {
+        try {
+          if (!sessionStorage.getItem("ft_budget_alert_dismissed")) {
+            setTimeout(() => {
+              this.openModal(modal);
+            }, 600);
+          }
+        } catch (e) {}
+      }
+    },
+
+    getOverBudgets() {
+      let overBudgets = [];
+      if (typeof FinanceTrackData !== "undefined" && FinanceTrackData.budgets) {
+        overBudgets = FinanceTrackData.budgets.filter(
+          (b) => Number(b.batas) > 0 && Number(b.terpakai) >= Number(b.batas)
+        );
+      }
+      return overBudgets;
+    },
+
+    createModal(overBudgets) {
+      const backdrop = document.createElement("div");
+      backdrop.id = "modalBudgetAlert";
+      backdrop.dataset.dynamic = "true";
+      backdrop.className = "modal-backdrop";
+      backdrop.style.cssText =
+        "display:none;position:fixed;inset:0;background:rgba(15,23,42,0.65);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:99999;align-items:center;justify-content:center;padding:16px;";
+
+      this.renderModalContent(backdrop, overBudgets);
+      this.bindEvents(backdrop);
+      return backdrop;
+    },
+
+    renderModalContent(backdrop, overBudgets) {
+      const hasOverBudget = overBudgets && overBudgets.length > 0;
+      let listHtml = "";
+
+      if (hasOverBudget) {
+        listHtml = overBudgets
+          .map((ob) => {
+            let catName = ob.nama || "Kategori";
+            if (typeof FinanceTrackData !== "undefined" && (!ob.nama || ob.nama === "Kategori")) {
+              const cat = FinanceTrackData.getCategory(ob.kategoriId);
+              if (cat) catName = cat.nama;
+            }
+            const icon = ob.icon || "wifi";
+            const pct = Math.round(
+              (Number(ob.terpakai) / Math.max(1, Number(ob.batas))) * 100
+            );
+            return `
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#fff1f2;border:1px solid #fecdd3;border-radius:12px">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span class="material-symbols-outlined" style="font-size:24px;color:#e11d48">${Utils.escapeHtml(icon)}</span>
+                <div>
+                  <strong style="display:block;font-size:14px;color:#881337">${Utils.escapeHtml(catName)}</strong>
+                  <span style="font-size:12px;color:#9f1239">Terpakai: ${Utils.formatRupiah(ob.terpakai)} dari ${Utils.formatRupiah(ob.batas)}</span>
+                </div>
+              </div>
+              <span class="badge badge--expense" style="font-size:12px;font-weight:700;padding:4px 8px">${pct}%</span>
+            </div>
+          `;
+          })
+          .join("");
+      } else {
+        listHtml = `
+          <div style="text-align:center;padding:24px 16px;background:#f0fdf4;border:1px dashed #bbf7d0;border-radius:16px">
+            <span class="material-symbols-outlined" style="font-size:40px;color:#16a34a;margin-bottom:8px">task_alt</span>
+            <p style="font-size:14px;font-weight:600;color:#166534;margin:0 0 4px">Kondisi Finansial Prima</p>
+            <p style="font-size:13px;color:#15803d;margin:0">Seluruh alokasi anggaran bulan ini masih berada dalam batas aman yang terkendali.</p>
+          </div>
+        `;
+      }
+
+      const isInPages = window.location.pathname.includes("/pages/");
+      const isAnggaranPage = window.location.pathname.includes("anggaran");
+      const ctaHref = isAnggaranPage ? "#" : (isInPages ? "anggaran.php" : "pages/anggaran.php");
+      const ctaAction = isAnggaranPage ? 'onclick="document.getElementById(\'modalBudgetAlert\').style.display=\'none\';"' : '';
+
+      const headerTheme = hasOverBudget
+        ? {
+            bg: "linear-gradient(135deg, #fff1f2 0%, #ffe4e6 100%)",
+            border: "rgba(225,29,72,0.18)",
+            iconBg: "linear-gradient(135deg, #e11d48, #be123c)",
+            iconShadow: "rgba(225,29,72,0.4)",
+            icon: "notifications_active",
+            badgeBg: "rgba(225,29,72,0.12)",
+            badgeColor: "#be123c",
+            badgeIcon: "warning",
+            badgeText: "Peringatan Batas Anggaran",
+            titleColor: "#881337",
+            title: "Pengeluaran Melebihi Batas Anggaran!",
+            descColor: "#9f1239",
+            desc: "Sistem mendeteksi 1 atau lebih kategori pengeluaran bulan ini telah mencapai atau melampaui batas anggaran yang Anda tetapkan.",
+            tipBg: "#fffbeb",
+            tipBorder: "#fde68a",
+            tipColor: "#92400e",
+            tipIcon: "#d97706",
+            tipTitle: "Saran Finansial:",
+            tipText: "Tahan pengeluaran pada kategori ini atau sesuaikan kembali batas anggaran Anda di halaman Manajemen Anggaran agar keuangan tetap aman.",
+            btnPrimaryBg: "linear-gradient(135deg, #e11d48, #be123c)",
+            btnPrimaryBorder: "#be123c",
+            btnPrimaryShadow: "rgba(225,29,72,0.3)",
+            btnPrimaryText: "Kelola Anggaran",
+          }
+        : {
+            bg: "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+            border: "rgba(16,185,129,0.18)",
+            iconBg: "linear-gradient(135deg, #10b981, #059669)",
+            iconShadow: "rgba(16,185,129,0.4)",
+            icon: "verified",
+            badgeBg: "rgba(16,185,129,0.12)",
+            badgeColor: "#065f46",
+            badgeIcon: "check_circle",
+            badgeText: "Status Anggaran Aman",
+            titleColor: "#064e3b",
+            title: "Anggaran Terkendali!",
+            descColor: "#047857",
+            desc: "Seluruh kategori pengeluaran Anda saat ini masih berada dalam batas anggaran yang aman.",
+            tipBg: "#eff6ff",
+            tipBorder: "#bfdbfe",
+            tipColor: "#1e40af",
+            tipIcon: "#2563eb",
+            tipTitle: "Tips Hemat:",
+            tipText: "Terus pantau arus kas Anda dan pertahankan disiplin pencatatan agar target tabungan bulanan tercapai.",
+            btnPrimaryBg: "linear-gradient(135deg, #059669, #047857)",
+            btnPrimaryBorder: "#047857",
+            btnPrimaryShadow: "rgba(5,150,105,0.3)",
+            btnPrimaryText: "Lihat Anggaran",
+          };
+
+      backdrop.innerHTML = `
+        <div class="modal-dialog-custom" style="background:rgba(255,255,255,0.98);backdrop-filter:blur(20px);border:1px solid ${hasOverBudget ? 'rgba(225,29,72,0.3)' : 'rgba(16,185,129,0.3)'};border-radius:24px;box-shadow:0 25px 50px -12px ${hasOverBudget ? 'rgba(225,29,72,0.3)' : 'rgba(16,185,129,0.2)'};max-width:540px;width:100%;overflow:hidden;">
+          <div style="background:${headerTheme.bg};border-bottom:1px solid ${headerTheme.border};padding:24px 28px;position:relative">
+            <div style="display:flex;align-items:flex-start;gap:16px">
+              <div style="width:54px;height:54px;border-radius:16px;background:${headerTheme.iconBg};color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 10px 20px -5px ${headerTheme.iconShadow}">
+                <span class="material-symbols-outlined" style="font-size:30px">${headerTheme.icon}</span>
+              </div>
+              <div style="flex:1">
+                <div style="display:inline-flex;align-items:center;gap:6px;background:${headerTheme.badgeBg};color:${headerTheme.badgeColor};padding:4px 10px;border-radius:999px;font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;margin-bottom:6px">
+                  <span class="material-symbols-outlined" style="font-size:14px">${headerTheme.badgeIcon}</span>
+                  ${headerTheme.badgeText}
+                </div>
+                <h3 style="font-size:19px;font-weight:700;color:${headerTheme.titleColor};margin:0 0 4px;line-height:1.3">${headerTheme.title}</h3>
+                <p style="font-size:13px;color:${headerTheme.descColor};margin:0;line-height:1.5">${headerTheme.desc}</p>
+              </div>
+              <button type="button" class="btn btn--icon btn--ghost" id="btnCloseBudgetAlert" aria-label="Tutup" style="color:${headerTheme.badgeColor};margin-top:-6px;margin-right:-8px">
+                <span class="material-symbols-outlined">close</span>
+              </button>
+            </div>
+          </div>
+          <div style="padding:24px 28px">
+            <p style="font-size:12px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.05em;margin:0 0 12px">${hasOverBudget ? 'Kategori yang Melebihi Batas:' : 'Status Batas Anggaran:'}</p>
+            <div id="budgetAlertList" style="display:flex;flex-direction:column;gap:10px;max-height:220px;overflow-y:auto;margin-bottom:20px">
+              ${listHtml}
+            </div>
+            <div style="background:${headerTheme.tipBg};border:1px solid ${headerTheme.tipBorder};border-radius:12px;padding:12px 16px;display:flex;align-items:flex-start;gap:10px;margin-bottom:24px">
+              <span class="material-symbols-outlined" style="color:${headerTheme.tipIcon};font-size:20px;flex-shrink:0;margin-top:2px">lightbulb</span>
+              <p style="font-size:12px;color:${headerTheme.tipColor};margin:0;line-height:1.5">
+                <strong>${headerTheme.tipTitle}</strong> ${headerTheme.tipText}
+              </p>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:12px">
+              <button type="button" class="btn btn--secondary" id="btnDismissBudgetAlert" style="font-size:13px">
+                Saya Mengerti
+              </button>
+              <a href="${ctaHref}" ${ctaAction} class="btn btn--primary" style="font-size:13px;background:${headerTheme.btnPrimaryBg};border-color:${headerTheme.btnPrimaryBorder};box-shadow:0 4px 12px ${headerTheme.btnPrimaryShadow}">
+                <span class="material-symbols-outlined icon-sm">pie_chart</span>
+                ${headerTheme.btnPrimaryText}
+              </a>
+            </div>
+          </div>
+        </div>
+      `;
+    },
+
+    bindEvents(modal) {
+      const close = () => {
+        modal.style.display = "none";
+        try {
+          sessionStorage.setItem("ft_budget_alert_dismissed", "true");
+        } catch (e) {}
+      };
+
+      const btnClose = modal.querySelector("#btnCloseBudgetAlert");
+      const btnDismiss = modal.querySelector("#btnDismissBudgetAlert");
+      if (btnClose) btnClose.onclick = close;
+      if (btnDismiss) btnDismiss.onclick = close;
+      modal.onclick = (e) => {
+        if (e.target === modal) close();
+      };
+    },
+
+    openModal(modal, forceItem) {
+      if (!modal) {
+        modal = Utils.qs("#modalBudgetAlert");
+      }
+      const overBudgets = this.getOverBudgets();
+      if (forceItem && forceItem.isOver) {
+        const idx = overBudgets.findIndex((x) => String(x.kategoriId) === String(forceItem.kategoriId));
+        if (idx !== -1) {
+          overBudgets[idx] = Object.assign({}, overBudgets[idx], forceItem);
+        } else {
+          overBudgets.unshift(forceItem);
+        }
+      }
+      if (!modal) {
+        modal = this.createModal(overBudgets);
+        document.body.appendChild(modal);
+      } else {
+        this.renderModalContent(modal, overBudgets);
+        this.bindEvents(modal);
+      }
+      modal.style.display = "flex";
+      return modal;
+    },
+  };
 
   /* =======================================================================
      BOOTSTRAP
      ======================================================================= */
 
-  /* Namespace diekspos secara sinkron (bukan di dalam DOMContentLoaded)
-     supaya inline script tiap halaman selalu bisa memanggil modul di bawah
-     yang dijalankan setelah DOM siap. */
   window.FinanceTrack = {
     Utils,
     Navigation,
@@ -2069,6 +2545,7 @@
     TransactionForm,
     BudgetUI,
     Charts,
+    GlobalBudgetAlert,
   };
 
   
@@ -2090,6 +2567,7 @@
     BudgetUI.init();
     Dashboard.init();
     Charts.init();
+    GlobalBudgetAlert.init();
 
     // Sinkronisasi data user dari sesi backend bila aktif
     if (window.FinanceTrackAPI && window.location.protocol.startsWith("http")) {
