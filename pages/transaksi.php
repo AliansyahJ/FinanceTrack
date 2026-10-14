@@ -1,9 +1,9 @@
-﻿<?php
+<?php
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
 $userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
@@ -16,7 +16,7 @@ require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
 $userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
@@ -37,7 +37,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard FinanceTrack â€” ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
+  <meta name="description" content="Dashboard FinanceTrack — ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
     <title>Semua Transaksi &mdash; FinanceTrack</title>
   <script>
     window.__FT_BOOTSTRAP__ = <?= json_encode($bootstrapData, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
@@ -49,7 +49,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/style.css?v=1791587905545">
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
@@ -86,6 +86,18 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <a class="nav-item" href="anggaran.php">
             <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
             Anggaran
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="kategori.php">
+            <span class="material-symbols-outlined" aria-hidden="true">category</span>
+            Kategori
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="metode-pembayaran.php">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+            Metode Pembayaran
           </a>
         </li>
         <li>
@@ -157,10 +169,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
           <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
             <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
-            <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
+            <span data-user-name style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
-          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:8px;background:var(--surface-container-lowest);border:1px solid var(--surface-container);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:200px;z-index:100;">
+          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" >
             <a href="pengaturan.php" class="topbar-dropdown__item" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--on-surface);text-decoration:none;">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">person</span>
               <span>Profil / Pengaturan</span>
@@ -189,73 +201,84 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <p class="page-subtitle">Daftar riwayat lengkap seluruh pemasukan dan pengeluaranmu dalam satu kendali.</p>
         </div>
         <div class="page-header__actions">
-          <button type="button" class="btn btn--secondary" id="btnExport">
-            <span class="material-symbols-outlined icon-sm" aria-hidden="true">file_download</span>
-            Ekspor CSV
-          </button>
           <a class="btn btn--primary" href="form-transaksi.php">
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">add</span>
-            Tambah Transaksi
+            Tambah Transaksi Baru
           </a>
         </div>
       </div>
 
       <!-- Ringkasan -->
-      <section class="grid grid--4" aria-label="Ringkasan transaksi">
-        <article class="summary-card">
+      <section class="grid grid--4" aria-label="Ringkasan transaksi" style="gap:var(--space-md);margin-top:var(--gutter)">
+        <article class="summary-card interactive-stat-card" data-stat-card="income" tabindex="0" role="button" aria-label="Lihat hanya pemasukan" title="Klik untuk filter riwayat pemasukan" style="background:linear-gradient(145deg, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(16, 185, 129, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Total Pemasukan</p>
-            <span class="icon-box icon-box--success" aria-hidden="true">
+            <p class="summary-card__label" style="color:#059669;font-weight:700">Total Pemasukan</p>
+            <span class="icon-box icon-box--success" style="width:32px;height:32px;border-radius:8px;background:rgba(16, 185, 129, 0.14);color:#059669" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">trending_up</span>
             </span>
           </div>
           <div>
             <p class="summary-card__value text-income">+Rp <?= number_format($summary['pemasukan'], 0, ',', '.') ?></p>
-            <p class="summary-card__meta">Saku &amp; Freelance</p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:#059669">touch_app</span>
+              <span>Klik untuk filter pemasukan</span>
+            </p>
           </div>
         </article>
-        <article class="summary-card">
+
+        <article class="summary-card interactive-stat-card" data-stat-card="expense" tabindex="0" role="button" aria-label="Lihat hanya pengeluaran" title="Klik untuk filter riwayat pengeluaran" style="background:linear-gradient(145deg, rgba(239, 68, 68, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(239, 68, 68, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Total Pengeluaran</p>
-            <span class="icon-box icon-box--danger" aria-hidden="true">
+            <p class="summary-card__label" style="color:var(--danger);font-weight:700">Total Pengeluaran</p>
+            <span class="icon-box icon-box--danger" style="width:32px;height:32px;border-radius:8px;background:rgba(239, 68, 68, 0.14);color:var(--danger)" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">trending_down</span>
             </span>
           </div>
           <div>
             <p class="summary-card__value text-expense">-Rp <?= number_format($summary['pengeluaran'], 0, ',', '.') ?></p>
-            <p class="summary-card__meta">Terkendali</p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:var(--danger)">touch_app</span>
+              <span>Klik untuk filter pengeluaran</span>
+            </p>
           </div>
         </article>
-        <article class="summary-card">
+
+        <article class="summary-card interactive-stat-card" data-stat-card="net" tabindex="0" role="button" aria-label="Lihat arus kas bersih" title="Klik untuk reset filter" style="background:linear-gradient(145deg, rgba(2, 132, 199, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(2, 132, 199, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Arus Kas Bersih</p>
-            <span class="icon-box icon-box--primary" aria-hidden="true">
+            <p class="summary-card__label" style="color:var(--primary);font-weight:700">Arus Kas Bersih</p>
+            <span class="icon-box icon-box--primary" style="width:32px;height:32px;border-radius:8px;background:rgba(2, 132, 199, 0.14);color:var(--primary)" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">savings</span>
             </span>
           </div>
           <div>
-            <p class="summary-card__value"><?= ($netCash >= 0 ? '+Rp ' : '-Rp ') . number_format(abs($netCash), 0, ',', '.') ?></p>
-            <p class="summary-card__meta">Sisa tabungan</p>
+            <p class="summary-card__value" style="color:var(--on-surface)"><?= ($netCash >= 0 ? '+Rp ' : '-Rp ') . number_format(abs($netCash), 0, ',', '.') ?></p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:var(--primary)">balance</span>
+              <span>Selisih kas masuk &amp; keluar</span>
+            </p>
           </div>
         </article>
-        <article class="summary-card">
+
+        <article class="summary-card interactive-stat-card" data-stat-card="count" tabindex="0" role="button" aria-label="Total mutasi tercatat" title="Klik untuk fokus ke pencarian" style="background:linear-gradient(145deg, rgba(139, 92, 246, 0.08) 0%, rgba(255, 255, 255, 0.95) 100%);border:1px solid rgba(139, 92, 246, 0.22);cursor:pointer;transition:all 0.25s cubic-bezier(0.16, 1, 0.3, 1)">
           <div class="summary-card__top">
-            <p class="summary-card__label">Jumlah Transaksi</p>
-            <span class="icon-box icon-box--muted" aria-hidden="true">
+            <p class="summary-card__label" style="color:#7c3aed;font-weight:700">Jumlah Transaksi</p>
+            <span class="icon-box icon-box--muted" style="width:32px;height:32px;border-radius:8px;background:rgba(139, 92, 246, 0.14);color:#7c3aed" aria-hidden="true">
               <span class="material-symbols-outlined icon-sm">receipt_long</span>
             </span>
           </div>
           <div>
-            <p class="summary-card__value" data-tx-total>0</p>
-            <p class="summary-card__meta">Bulan <?= htmlspecialchars($summary['periode']) ?></p>
+            <p class="summary-card__value" data-tx-total style="color:#7c3aed">0</p>
+            <p class="summary-card__meta" style="font-size:11px;display:flex;align-items:center;gap:4px">
+              <span class="material-symbols-outlined" style="font-size:13px;color:#7c3aed">history</span>
+              <span>Total mutasi tercatat</span>
+            </p>
           </div>
         </article>
       </section>
 
       <!-- Filter -->
       <section class="card filter-bar" style="margin-top:var(--gutter)" aria-label="Pencarian dan filter">
-        <div class="row row--wrap">
-          <div class="input-group filter-bar__search">
+        <div class="row row--wrap" style="align-items:center; gap:var(--space-sm);">
+          <div class="input-group filter-bar__search" style="flex:1; min-width:240px;">
             <span class="material-symbols-outlined" aria-hidden="true">search</span>
             <label class="visually-hidden" for="tx-search">Cari transaksi</label>
             <input type="search" class="input" id="tx-search" data-search
@@ -264,15 +287,17 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">close</span>
             </button>
           </div>
-          <button type="button" class="btn btn--ghost filter-bar__advanced" data-filter-advanced
-                  aria-expanded="false" aria-controls="filter-advanced">
-            <span class="material-symbols-outlined icon-sm" aria-hidden="true">tune</span>
-            Filter Lengkap
-          </button>
-          <button type="button" class="btn btn--ghost" data-filter-reset>
-            <span class="material-symbols-outlined icon-sm" aria-hidden="true">restart_alt</span>
-            Reset
-          </button>
+          <div class="d-flex align-items-center gap-2">
+            <button type="button" class="btn btn--ghost filter-bar__advanced" data-filter-advanced
+                    aria-expanded="false" aria-controls="filter-advanced">
+              <span class="material-symbols-outlined icon-sm" aria-hidden="true">tune</span>
+              Filter Lengkap
+            </button>
+            <button type="button" class="btn btn--ghost" data-filter-reset style="display:inline-flex; align-items:center; gap:4px;">
+              <span class="material-symbols-outlined icon-sm" aria-hidden="true">restart_alt</span>
+              Reset
+            </button>
+          </div>
         </div>
 
         <!-- Quick filter pills (Stitch) -->
@@ -287,7 +312,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
         <div class="filter-bar__controls" id="filter-advanced">
           <div class="filter-bar__control">
-            <label for="filter-type">Jenis</label>
+            <label for="filter-type">Jenis Transaksi</label>
             <select class="select" id="filter-type" data-filter-type>
               <option value="all">Semua Jenis</option>
               <option value="income">Pemasukan</option>
@@ -295,21 +320,21 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             </select>
           </div>
           <div class="filter-bar__control">
-            <label for="filter-category">Kategori</label>
+            <label for="filter-category">Kategori Transaksi</label>
             <select class="select" id="filter-category" data-filter-category>
               <option value="all">Semua Kategori</option>
             </select>
           </div>
           <div class="filter-bar__control">
-            <label for="filter-period">Periode</label>
-            <select class="select" id="filter-period" data-filter-period>
-              <option value="all">Semua Periode</option>
-              <option value="2024-10">Oktober 2024</option>
-              <option value="2024-09">September 2024</option>
-            </select>
+            <label for="filter-start-date">Tanggal Mulai</label>
+            <input type="date" class="input" id="filter-start-date" data-filter-start>
           </div>
           <div class="filter-bar__control">
-            <label for="filter-sort">Urutkan</label>
+            <label for="filter-end-date">Tanggal Akhir</label>
+            <input type="date" class="input" id="filter-end-date" data-filter-end>
+          </div>
+          <div class="filter-bar__control">
+            <label for="filter-sort">Urutan</label>
             <select class="select" id="filter-sort" data-filter-sort>
               <option value="newest">Terbaru</option>
               <option value="oldest">Terlama</option>
@@ -318,15 +343,32 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             </select>
           </div>
         </div>
+
+        <!-- Quick Date Presets -->
+        <div class="d-flex align-items-center gap-2 flex-wrap" style="margin-top:var(--space-sm);padding-top:var(--space-sm);border-top:1px dashed var(--surface-container);font-size:var(--text-xs)">
+          <span class="text-secondary" style="font-weight:600;display:flex;align-items:center;gap:4px">
+            <span class="material-symbols-outlined icon-xs">date_range</span>
+            Rentang Cepat:
+          </span>
+          <button type="button" class="btn btn--sm btn--ghost" data-date-preset="today" style="padding:4px 12px;font-size:12px;border-radius:999px">Hari Ini</button>
+          <button type="button" class="btn btn--sm btn--ghost" data-date-preset="7days" style="padding:4px 12px;font-size:12px;border-radius:999px">7 Hari Terakhir</button>
+          <button type="button" class="btn btn--sm btn--ghost" data-date-preset="30days" style="padding:4px 12px;font-size:12px;border-radius:999px">30 Hari Terakhir</button>
+          <button type="button" class="btn btn--sm btn--ghost" data-date-preset="this-month" style="padding:4px 12px;font-size:12px;border-radius:999px">Bulan Ini</button>
+          <button type="button" class="btn btn--sm btn--ghost is-active" data-date-preset="all" style="padding:4px 12px;font-size:12px;border-radius:999px">Semua</button>
+        </div>
       </section>
 
       <!-- Table -->
       <section class="card" data-tx-card style="margin-top:var(--gutter)" aria-labelledby="tabel-transaksi-heading">
-        <div class="card__header">
+        <div class="card__header d-flex justify-content-between align-items-center flex-wrap gap-2">
           <div>
             <h2 class="section-title" id="tabel-transaksi-heading">Riwayat Transaksi</h2>
-            <p class="section-subtitle" data-tx-info>Memuat dataâ€”</p>
+            <p class="section-subtitle" data-tx-info>Memuat data—</p>
           </div>
+          <button type="button" class="btn btn--secondary btn--sm" id="btnExport" style="display:inline-flex;align-items:center;gap:6px">
+            <span class="material-symbols-outlined icon-sm" aria-hidden="true">file_download</span>
+            <span id="btnExportLabel">Ekspor CSV</span>
+          </button>
         </div>
 
         <!-- Desktop: tabel -->
@@ -349,7 +391,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
               </tr>
             </thead>
             <tbody data-tx-tbody>
-              <!-- diisi oleh script.js dari data.js -->
+              <!-- diisi oleh script.js?v=1791587905545 dari data.js -->
             </tbody>
           </table>
         </div>
@@ -434,7 +476,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
   <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/script.js?v=<?= time() ?>"></script>
   <script>
     /* Bangun baris tabel & filter kategori dari mock data. */
     document.addEventListener("DOMContentLoaded", function () {
@@ -482,7 +524,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         tr.innerHTML =
           '<td class="table__center">' +
             '<label class="visually-hidden" for="cb-' + t.id + '">Pilih transaksi ' + t.id + '</label>' +
-            '<input type="checkbox" class="checkbox row-checkbox" id="cb-' + t.id + '">' +
+            '<input type="checkbox" class="checkbox row-checkbox" id="cb-' + t.id + '" value="' + t.id + '">' +
           '</td>' +
           '<td style="white-space:nowrap">' +
             '<div style="font-weight:500">' + esc(U.formatTanggal(t.tanggal)) + '</div>' +
@@ -529,7 +571,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
             '</span>' +
             '<div class="cell-identity__text">' +
               '<p class="cell-identity__title">' + esc(t.deskripsi) + '</p>' +
-              '<p class="cell-identity__sub">' + esc(cat.nama) + ' Â· ' + esc(method.nama) + ' Â· ' +
+              '<p class="cell-identity__sub">' + esc(cat.nama) + ' · ' + esc(method.nama) + ' · ' +
                 esc(U.formatTanggal(t.tanggal)) + '</p>' +
             '</div>' +
           '</div>' +
@@ -590,6 +632,53 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         setTimeout(syncPills, 0);
       });
 
+      /* Interaktivitas Kartu Mini Transaksi */
+      document.querySelectorAll("[data-stat-card]").forEach(function(card) {
+        card.addEventListener("click", function() {
+          var type = this.getAttribute("data-stat-card");
+          var tableSec = document.querySelector("[data-tx-card]");
+
+          if (type === "income") {
+            typeSel.value = "income";
+            catSel.value = "all";
+            searchInput.value = "";
+            syncPills();
+            TT.applyFilters();
+            FinanceTrack.Feedback.showToast("Filter Pemasukan", "Menampilkan mutasi pemasukan saja.", "trending_up");
+          } else if (type === "expense") {
+            typeSel.value = "expense";
+            catSel.value = "all";
+            searchInput.value = "";
+            syncPills();
+            TT.applyFilters();
+            FinanceTrack.Feedback.showToast("Filter Pengeluaran", "Menampilkan mutasi pengeluaran saja.", "trending_down");
+          } else if (type === "net") {
+            typeSel.value = "all";
+            catSel.value = "all";
+            searchInput.value = "";
+            syncPills();
+            TT.applyFilters();
+            FinanceTrack.Feedback.showToast("Semua Transaksi", "Menampilkan seluruh riwayat transaksi.", "balance");
+          } else if (type === "count") {
+            if (searchInput) searchInput.focus();
+            FinanceTrack.Feedback.showToast("Pencarian", "Ketik kata kunci untuk mencari transaksi.", "search");
+          }
+
+          if (tableSec && type !== "count") {
+            tableSec.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+      });
+
+      // Sinkronisasi otomatis pill dari URL parameter
+      var urlParams = new URLSearchParams(window.location.search);
+      var typeParam = urlParams.get("type");
+      if (typeParam && (typeParam === "income" || typeParam === "expense")) {
+        typeSel.value = typeParam;
+        syncPills();
+        TT.applyFilters();
+      }
+
       /* Panel filter lanjutan (hanya tampil lewat tombol di mobile) */
       var advBtn = document.querySelector("[data-filter-advanced]");
       var advPanel = document.getElementById("filter-advanced");
@@ -600,36 +689,56 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         });
       }
 
-      /* --- Export CSV (nyata: unduh file CSV dari backend) --- */
+      /* --- Export CSV (Dukungan Ekspor Seluruhnya & Ekspor Transaksi Terpilih) --- */
+      function updateExportButtonState() {
+        var btn = document.getElementById("btnExport");
+        var label = document.getElementById("btnExportLabel") || btn;
+        if (!btn) return;
+        var checkedBoxes = document.querySelectorAll("[data-tx-tbody] .row-checkbox:checked");
+        var count = checkedBoxes.length;
+
+        if (count > 0) {
+          label.textContent = "Ekspor Terpilih (" + count + ")";
+          btn.classList.remove("btn--secondary");
+          btn.classList.add("btn--primary");
+          btn.setAttribute("title", "Unduh CSV untuk " + count + " transaksi yang dipilih");
+        } else {
+          label.textContent = "Ekspor CSV";
+          btn.classList.remove("btn--primary");
+          btn.classList.add("btn--secondary");
+          btn.setAttribute("title", "Unduh seluruh transaksi ke format CSV");
+        }
+      }
+      window.updateTxExportButtonState = updateExportButtonState;
+
+      document.addEventListener("change", function(e) {
+        if (e.target && (e.target.matches("[data-select-all]") || e.target.classList.contains("row-checkbox"))) {
+          setTimeout(updateExportButtonState, 10);
+        }
+      });
+
       var btnExp = document.getElementById("btnExport");
       if (btnExp) {
         btnExp.addEventListener("click", function () {
-          window.location.href = "../api/reports/export_csv.php";
+          var checkedBoxes = document.querySelectorAll("[data-tx-tbody] .row-checkbox:checked");
+          var ids = [];
+          checkedBoxes.forEach(function(cb) {
+            var tr = cb.closest("tr");
+            var val = cb.value || (tr && tr.dataset && tr.dataset.id);
+            if (val) ids.push(val);
+          });
+
+          if (ids.length > 0) {
+            window.location.href = "../api/reports/export_csv.php?ids=" + encodeURIComponent(ids.join(","));
+          } else {
+            window.location.href = "../api/reports/export_csv.php";
+          }
         });
       }
     });
   </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const userMenuBtn = document.querySelector('[data-user-menu-trigger]');
-    const userMenuDropdown = document.querySelector('[data-user-menu-dropdown]');
-    if (userMenuBtn && userMenuDropdown) {
-      userMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = userMenuBtn.getAttribute('aria-expanded') === 'true';
-        userMenuBtn.setAttribute('aria-expanded', !isExpanded);
-        userMenuDropdown.style.display = isExpanded ? 'none' : 'block';
-      });
-      document.addEventListener('click', (e) => {
-        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-          userMenuBtn.setAttribute('aria-expanded', 'false');
-          userMenuDropdown.style.display = 'none';
-        }
-      });
-    }
-  });
-</script>
+
 </body>
 </html>
 

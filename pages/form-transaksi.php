@@ -1,22 +1,9 @@
-﻿<?php
-require_once __DIR__ . '/../auth/middleware.php';
-require_once __DIR__ . '/../database/bootstrap.php';
-requireAuth();
-$currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
-$userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
-$userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
-$userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
-$bootstrapData = getDatabaseBootstrapData((int)$currentUser['id']);
-$summary = $bootstrapData['summary'] ?? ['totalAnggaran' => 3200000, 'pengeluaran' => 0];
-$expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran'] / $summary['totalAnggaran']) * 100) : 0;
-?>
 <?php
 require_once __DIR__ . '/../auth/middleware.php';
 require_once __DIR__ . '/../database/bootstrap.php';
 requireAuth();
 $currentUser = getCurrentUser();
-$userName = htmlspecialchars($currentUser['nama'] ?? 'Fikri Juana');
+$userName = htmlspecialchars($currentUser['name'] ?? 'Fikri Juana');
 $userRole = htmlspecialchars($currentUser['role'] ?? 'Mahasiswa');
 $userAvatar = htmlspecialchars($currentUser['avatar_initials'] ?? 'FP');
 $userEmail = htmlspecialchars($currentUser['email'] ?? 'demo@financetrack.test');
@@ -37,7 +24,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Dashboard FinanceTrack â€” ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
+  <meta name="description" content="Dashboard FinanceTrack — ringkasan keuangan mahasiswa: saldo, pemasukan, pengeluaran, dan anggaran.">
     <title>Tambah Transaksi &mdash; FinanceTrack</title>
   <script>
     window.__FT_BOOTSTRAP__ = <?= json_encode($bootstrapData, JSON_HEX_TAG | JSON_HEX_AMP) ?>;
@@ -49,7 +36,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/style.css?v=1791587905545">
   <link rel="stylesheet" href="../assets/css/responsive.css">
 </head>
 <body>
@@ -86,6 +73,18 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
           <a class="nav-item" href="anggaran.php">
             <span class="material-symbols-outlined" aria-hidden="true">pie_chart</span>
             Anggaran
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="kategori.php">
+            <span class="material-symbols-outlined" aria-hidden="true">category</span>
+            Kategori
+          </a>
+        </li>
+        <li>
+          <a class="nav-item" href="metode-pembayaran.php">
+            <span class="material-symbols-outlined" aria-hidden="true">payments</span>
+            Metode Pembayaran
           </a>
         </li>
         <li>
@@ -157,10 +156,10 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
         <div class="topbar__user-menu" data-user-menu style="position:relative;">
           <button type="button" class="sidebar__user" data-user-menu-trigger aria-expanded="false" aria-haspopup="true" aria-label="Menu pengguna" style="display:flex;align-items:center;border:1px solid var(--surface-container);cursor:pointer;background-color:var(--surface-container-lowest);font-family:inherit;text-align:left;border-radius:999px;padding:4px 12px 4px 4px;height:48px;box-sizing:border-box;margin:0;">
             <span class="sidebar__avatar" aria-hidden="true" data-user-avatar style="width:40px;height:40px;font-size:14px;"><?= $userAvatar ?></span>
-            <span style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
+            <span data-user-name style="font-weight:600;font-size:var(--text-label-sm);margin-left:8px;margin-right:8px;"><?= $userName ?></span>
             <span class="material-symbols-outlined icon-sm" aria-hidden="true">expand_more</span>
           </button>
-          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" style="display:none;position:absolute;right:0;top:100%;margin-top:8px;background:var(--surface-container-lowest);border:1px solid var(--surface-container);border-radius:var(--radius-md);box-shadow:var(--shadow-md);min-width:200px;z-index:100;">
+          <div class="topbar-dropdown" data-user-menu-dropdown role="menu" >
             <a href="pengaturan.php" class="topbar-dropdown__item" role="menuitem" style="display:flex;align-items:center;gap:12px;padding:12px 16px;color:var(--on-surface);text-decoration:none;">
               <span class="material-symbols-outlined icon-sm" aria-hidden="true">person</span>
               <span>Profil / Pengaturan</span>
@@ -438,28 +437,36 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="../assets/js/data.js"></script>
   <script src="../assets/js/api.js"></script>
-  <script src="../assets/js/script.js"></script>
+  <script src="../assets/js/script.js?v=1791587905545"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
       var D = FinanceTrackData;
       var U = FinanceTrack.Utils;
       var esc = U.escapeHtml;
 
+      var editId = new URLSearchParams(window.location.search).get("id");
+
       /* --- Isi dropdown metode pembayaran --- */
       var methodSel = document.querySelector("[data-field-method]");
-      D.paymentMethods.forEach(function (m) {
-        var o = document.createElement("option");
-        o.value = m.id;
-        o.textContent = m.nama;
-        methodSel.appendChild(o);
-      });
+      if (methodSel && methodSel.options.length === 0 && D.paymentMethods) {
+        D.paymentMethods.forEach(function (m) {
+          var o = document.createElement("option");
+          o.value = m.id;
+          o.textContent = m.nama;
+          methodSel.appendChild(o);
+        });
+      }
 
-      /* --- Default tanggal = hari ini, waktu = sekarang --- */
-      var now = new Date();
-      var pad = function (n) { return String(n).padStart(2, "0"); };
-      var today = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
-      document.querySelector("[data-field-date]").value = today;
-      document.querySelector("[data-field-time]").value = pad(now.getHours()) + ":" + pad(now.getMinutes());
+      /* --- Default tanggal = hari ini, waktu = sekarang (hanya mode tambah baru) --- */
+      if (!editId) {
+        var now = new Date();
+        var pad = function (n) { return String(n).padStart(2, "0"); };
+        var today = now.getFullYear() + "-" + pad(now.getMonth() + 1) + "-" + pad(now.getDate());
+        var dateField = document.querySelector("[data-field-date]");
+        var timeField = document.querySelector("[data-field-time]");
+        if (dateField && !dateField.value) dateField.value = today;
+        if (timeField && !timeField.value) timeField.value = pad(now.getHours()) + ":" + pad(now.getMinutes());
+      }
 
       /* --- Unggah foto struk (validasi format & ukuran + preview thumbnail & hapus) --- */
       var fileInput = document.querySelector("[data-upload-input]");
@@ -577,9 +584,11 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
 
       /* --- Isi dropdown kategori sesuai mode aktif (default: expense) ---
          Pakai currentType milik modul agar tidak menimpa mode dari query
-         string ?jenis=income yang sudah diatur script.js. */
+         string ?jenis=income yang sudah diatur script.js?v=1791587905545. */
       var T = FinanceTrack.TransactionForm;
-      T.updateCategoryOptions(T.currentType);
+      if (!editId) {
+        T.updateCategoryOptions(T.currentType);
+      }
       T.updatePreview();
 
       /* --- Batas anggaran untuk kategori terpilih --- */
@@ -661,26 +670,7 @@ $expensePct = !empty($summary['totalAnggaran']) ? round(($summary['pengeluaran']
     });
   </script>
 
-<script>
-  document.addEventListener('DOMContentLoaded', () => {
-    const userMenuBtn = document.querySelector('[data-user-menu-trigger]');
-    const userMenuDropdown = document.querySelector('[data-user-menu-dropdown]');
-    if (userMenuBtn && userMenuDropdown) {
-      userMenuBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const isExpanded = userMenuBtn.getAttribute('aria-expanded') === 'true';
-        userMenuBtn.setAttribute('aria-expanded', !isExpanded);
-        userMenuDropdown.style.display = isExpanded ? 'none' : 'block';
-      });
-      document.addEventListener('click', (e) => {
-        if (!userMenuBtn.contains(e.target) && !userMenuDropdown.contains(e.target)) {
-          userMenuBtn.setAttribute('aria-expanded', 'false');
-          userMenuDropdown.style.display = 'none';
-        }
-      });
-    }
-  });
-</script>
+
 </body>
 </html>
 

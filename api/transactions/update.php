@@ -38,6 +38,12 @@ if ($id <= 0) {
 if ($amount <= 0 || empty($description) || empty($categoryId) || empty($paymentMethod)) {
     sendJsonResponse(['success' => false, 'message' => 'Harap lengkapi seluruh kolom wajib.'], 400);
 }
+if (mb_strlen($description) > 100) {
+    sendJsonResponse(['success' => false, 'message' => 'Deskripsi maksimal 100 karakter.'], 400);
+}
+if (mb_strlen($notes) > 1000) {
+    sendJsonResponse(['success' => false, 'message' => 'Catatan terlalu panjang (maksimal 1000 karakter).'], 400);
+}
 
 try {
     $pdo = getDbConnection();

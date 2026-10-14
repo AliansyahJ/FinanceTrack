@@ -45,6 +45,11 @@ if (empty($categoryId)) {
 }
 if (empty($description)) {
     $errors['description'] = 'Deskripsi transaksi wajib diisi.';
+} elseif (mb_strlen($description) > 100) {
+    $errors['description'] = 'Deskripsi maksimal 100 karakter. Gunakan catatan untuk detail.';
+}
+if (mb_strlen($notes) > 1000) {
+    $errors['notes'] = 'Catatan terlalu panjang (maksimal 1000 karakter).';
 }
 if (empty($paymentMethod)) {
     $errors['payment_method'] = 'Metode pembayaran wajib dipilih.';

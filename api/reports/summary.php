@@ -88,6 +88,40 @@ try {
         ];
     }
 
+    // 4. Arus Kas Harian (Jika bulanan)
+    $dailyCashflow = [];
+    if ($range === 'bulanan') {
+        $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $month, $year);
+        $dailyStmt = $pdo->prepare("SELECT 
+            DAY(transaction_date) AS d,
+            COALESCE(SUM(CASE WHEN type = 'income' THEN amount ELSE 0 END), 0) AS inc,
+            COALESCE(SUM(CASE WHEN type = 'expense' THEN amount ELSE 0 END), 0) AS exp
+            FROM transactions 
+            WHERE {$dateWhere}
+            GROUP BY d");
+        $dailyStmt->execute($params);
+        
+        $dailyMap = [];
+        foreach ($dailyStmt->fetchAll() as $row) {
+            $dailyMap[$row['d']] = $row;
+        }
+
+        $upto = $daysInMonth;
+        if ($year == date('Y') && $month == date('n')) {
+            $upto = (int)date('j');
+            $maxDataDay = !empty($dailyMap) ? max(array_keys($dailyMap)) : 0;
+            if ($maxDataDay > $upto) $upto = $maxDataDay;
+        }
+        
+        for ($d = 1; $d <= $upto; $d++) {
+            $dailyCashflow[] = [
+                'tanggal' => $d,
+                'pemasukan' => isset($dailyMap[$d]) ? (float)$dailyMap[$d]['inc'] : 0,
+                'pengeluaran' => isset($dailyMap[$d]) ? (float)$dailyMap[$d]['exp'] : 0,
+            ];
+        }
+    }
+
     sendJsonResponse([
         'success' => true,
         'filter' => [
@@ -102,7 +136,8 @@ try {
             'rasioTabungan' => $rasioTabungan
         ],
         'monthlyRecap' => $monthlyRecap,
-        'categoryReport' => $categoryRows
+        'categoryReport' => $categoryRows,
+        'dailyCashflow' => $dailyCashflow
     ]);
 
 } catch (\Throwable $e) {

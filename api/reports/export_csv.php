@@ -17,34 +17,70 @@ $year  = isset($_GET['year']) ? (int)$_GET['year'] : 0;
 $range = trim($_GET['range'] ?? 'semua');
 $month = (int)($_GET['month'] ?? date('n'));
 
+$idsParam = trim($_GET['ids'] ?? '');
+$isSpecificSelection = false;
+
 try {
     $pdo = getDbConnection();
 
-    $whereClauses = ['t.user_id = :user_id'];
-    $params = [':user_id' => $userId];
-
-    if ($year > 0) {
-        $whereClauses[] = 'YEAR(t.transaction_date) = :year';
-        $params[':year'] = $year;
+    if ($idsParam !== '') {
+        $rawIds = explode(',', $idsParam);
+        $selectedIds = [];
+        foreach ($rawIds as $rid) {
+            $clean = trim($rid);
+            if ($clean !== '') {
+                $selectedIds[] = is_numeric($clean) ? (int)$clean : $clean;
+            }
+        }
+        if (!empty($selectedIds)) {
+            $isSpecificSelection = true;
+            $placeholders = implode(',', array_fill(0, count($selectedIds), '?'));
+            $sql = "SELECT t.id, t.transaction_date, t.transaction_time, t.type, t.amount, 
+                           c.name AS category_name, t.description, t.payment_method, t.notes
+                    FROM transactions t
+                    JOIN categories c ON t.category_id = c.id
+                    WHERE t.user_id = ? AND t.id IN ($placeholders)
+                    ORDER BY t.transaction_date DESC, t.transaction_time DESC, t.id DESC";
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute(array_merge([$userId], $selectedIds));
+            $rows = $stmt->fetchAll();
+        }
     }
 
-    if ($range === 'bulanan' && $month > 0) {
-        $whereClauses[] = 'MONTH(t.transaction_date) = :month';
-        $params[':month'] = $month;
+    if (!$isSpecificSelection) {
+        $whereClauses = ['t.user_id = :user_id'];
+        $params = [':user_id' => $userId];
+
+        if ($year > 0) {
+            $whereClauses[] = 'YEAR(t.transaction_date) = :year';
+            $params[':year'] = $year;
+        }
+
+        if ($range === 'bulanan' && $month > 0) {
+            $whereClauses[] = 'MONTH(t.transaction_date) = :month';
+            $params[':month'] = $month;
+        } elseif ($range === 'kuartalan' && $month > 0) {
+            $quarter = ceil($month / 3);
+            $startM = ($quarter - 1) * 3 + 1;
+            $endM = $quarter * 3;
+            $whereClauses[] = 'MONTH(t.transaction_date) BETWEEN :startM AND :endM';
+            $params[':startM'] = $startM;
+            $params[':endM'] = $endM;
+        }
+
+        $whereSql = implode(' AND ', $whereClauses);
+
+        $sql = "SELECT t.id, t.transaction_date, t.transaction_time, t.type, t.amount, 
+                       c.name AS category_name, t.description, t.payment_method, t.notes
+                FROM transactions t
+                JOIN categories c ON t.category_id = c.id
+                WHERE {$whereSql}
+                ORDER BY t.transaction_date DESC, t.transaction_time DESC, t.id DESC";
+
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
+        $rows = $stmt->fetchAll();
     }
-
-    $whereSql = implode(' AND ', $whereClauses);
-
-    $sql = "SELECT t.id, t.transaction_date, t.transaction_time, t.type, t.amount, 
-                   c.name AS category_name, t.description, t.payment_method, t.notes
-            FROM transactions t
-            JOIN categories c ON t.category_id = c.id
-            WHERE {$whereSql}
-            ORDER BY t.transaction_date DESC, t.transaction_time DESC, t.id DESC";
-
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll();
 
 } catch (\Throwable $e) {
     error_log('Export CSV DB Offline, using demo fallback: ' . $e->getMessage());
@@ -60,7 +96,9 @@ try {
 }
 
 // Siapkan HTTP Header untuk unduhan file CSV
-$filename = 'FinanceTrack_Laporan_' . ($year ?: 'Semua') . '_' . date('Ymd_His') . '.csv';
+$filename = $isSpecificSelection
+    ? 'FinanceTrack_Transaksi_Terpilih_' . date('Ymd_His') . '.csv'
+    : 'FinanceTrack_Laporan_' . ($year ?: 'Semua') . '_' . date('Ymd_His') . '.csv';
 
 if (!headers_sent()) {
     header('Content-Type: text/csv; charset=utf-8');
@@ -86,7 +124,7 @@ fputcsv($output, [
     'Metode Pembayaran',
     'Nominal (Rp)',
     'Catatan'
-], ';');
+], ',');
 
 $no = 1;
 foreach ($rows as $row) {
@@ -100,7 +138,7 @@ foreach ($rows as $row) {
         ucfirst($row['payment_method']),
         number_format((float)$row['amount'], 0, ',', '.'),
         $row['notes'] ?: '-'
-    ], ';');
+    ], ',');
 }
 
 fclose($output);
